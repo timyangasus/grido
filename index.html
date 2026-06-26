@@ -300,7 +300,7 @@ function switchTab(tab){
   updateAlbumUI();
   document.querySelectorAll('.tabbtn').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
   document.querySelectorAll('.panels .panel').forEach(p=>p.classList.toggle('on',p.id==='panel'+tab));
-  if(tab==='Layout') renderThumbGrid();
+  if(tab==='Layout'){renderThumbGrid();if(st.layoutIdx!==null)requestAnimationFrame(render);}
 }
 
 // ── Add photos ───────────────────────────────────────────────────────────────
