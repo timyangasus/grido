@@ -57,7 +57,7 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
     <div class="nav">
       <span class="nav-title">Grido</span>
       <button class="nav-icon dim" id="btnExport">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13M7 11l5 5 5-5"/><path d="M5 21h14"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M240-80q-33 0-56.5-23.5T160-160v-400q0-33 23.5-56.5T240-640h120v80H240v400h480v-400H600v-80h120q33 0 56.5 23.5T800-560v400q0 33-23.5 56.5T720-80H240Zm200-240v-447l-64 64-56-57 160-160 160 160-56 57-64-64v447h-80Z"/></svg>
       </button>
     </div>
     <div class="preview tap" id="preview">
@@ -575,10 +575,21 @@ document.getElementById('btnExport').addEventListener('click',()=>{
     }else{ectx.fillStyle='#2C2C2E';ectx.fillRect(r.x,r.y,r.w,r.h);}
   });
   ectx.strokeStyle='#ffffff';drawBorders(ectx,layout.f,W,H,1);
-  ec.toBlob(blob=>{
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');a.href=url;a.download='grido_'+Date.now()+'.jpg';a.click();
-    setTimeout(()=>URL.revokeObjectURL(url),3000);showToast('已儲存');
+  ec.toBlob(async blob=>{
+    const file=new File([blob],'grido_'+Date.now()+'.jpg',{type:'image/jpeg'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      try{
+        await navigator.share({files:[file],title:'Grido'});
+      }catch(e){
+        if(e.name!=='AbortError') showToast('分享失敗');
+      }
+    } else {
+      // fallback: download
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');a.href=url;a.download=file.name;a.click();
+      setTimeout(()=>URL.revokeObjectURL(url),3000);
+      showToast('已儲存');
+    }
   },'image/jpeg',0.95);
 });
 
