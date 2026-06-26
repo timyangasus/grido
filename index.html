@@ -574,7 +574,7 @@ document.getElementById('btnExport').addEventListener('click',()=>{
       ectx.drawImage(img,dx,dy,sw,sh);ectx.restore();
     }else{ectx.fillStyle='#2C2C2E';ectx.fillRect(r.x,r.y,r.w,r.h);}
   });
-  ectx.strokeStyle='#ffffff';drawBorders(ectx,layout.f,W,H,1);
+  ectx.strokeStyle='#ffffff';drawBorders(ectx,layout.f,W,H,6);
   ec.toBlob(async blob=>{
     const file=new File([blob],'grido_'+Date.now()+'.jpg',{type:'image/jpeg'});
     if(navigator.canShare&&navigator.canShare({files:[file]})){
