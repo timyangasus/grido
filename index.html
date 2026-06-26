@@ -190,6 +190,15 @@ function drawBorders(c,fracs,W,H,lw){
   });
   c.restore();
 }
+function swapCells(a, b){
+  // swap photos
+  const tmp=st.photos[a]; st.photos[a]=st.photos[b]; st.photos[b]=tmp;
+  // swap transforms
+  const tt=st.transforms[a]; st.transforms[a]=st.transforms[b]; st.transforms[b]=tt;
+  st.selCell=null;
+  render();
+}
+
 function render(){
   if(st.layoutIdx===null)return;
   const layout=ALL_LAYOUTS[st.layoutIdx];
@@ -369,7 +378,7 @@ document.getElementById('btnCheck').addEventListener('click',()=>{
       // check X button on selected cell
       if(st.selCell!==null){
         const r=toRect(layout.f[st.selCell],cvs.width,cvs.height);
-        const xr=Math.round(14/scale),xpad=Math.round(16/scale);
+        const xr=Math.round(10/scale),xpad=Math.round(6/scale);
         const xcx=r.x+r.w-xr-xpad,xcy=r.y+xr+xpad;
         if(Math.hypot(p.x-xcx,p.y-xcy)<=xr*1.8){
           const np=[...st.photos];np.splice(st.selCell,1);
@@ -391,6 +400,10 @@ document.getElementById('btnCheck').addEventListener('click',()=>{
           startX:p.x,startY:p.y,
           startOx:st.transforms[cell].ox,
           startOy:st.transforms[cell].oy};
+      } else if(st.selCell!==null && st.photos[cell]!==null){
+        // tap different cell while one selected → swap
+        swapCells(st.selCell, cell);
+        gesture=null;
       } else {
         st.selCell=cell;render();gesture=null;
       }
@@ -492,7 +505,7 @@ document.getElementById('btnCheck').addEventListener('click',()=>{
     const scale=(parseFloat(cvs.style.width)||cvs.width)/cvs.width;
     if(st.selCell!==null){
       const r=toRect(layout.f[st.selCell],cvs.width,cvs.height);
-      const xr=Math.round(14/scale),xpad=Math.round(16/scale);
+      const xr=Math.round(10/scale),xpad=Math.round(6/scale);
       const xcx=r.x+r.w-xr-xpad,xcy=r.y+xr+xpad;
       if(Math.hypot(p.x-xcx,p.y-xcy)<=xr*1.5){
         const np=[...st.photos];np.splice(st.selCell,1);
@@ -508,6 +521,7 @@ document.getElementById('btnCheck').addEventListener('click',()=>{
     if(cell===null){st.selCell=null;render();return;}
     if(st.photos[cell]===null){document.getElementById('fp').click();return;}
     if(st.selCell===cell){st.repCell=cell;document.getElementById('fr').click();}
+    else if(st.selCell!==null && st.photos[cell]!==null){swapCells(st.selCell,cell);}
     else{st.selCell=cell;render();}
   });
 
