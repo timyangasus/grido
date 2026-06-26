@@ -365,7 +365,65 @@ document.getElementById('btnCheck').addEventListener('click',()=>{
   }
 
   // gesture state
-  let gesture=null; // null | {mode:'drag'|'pinch', cell, ...}
+  let gesture=null;
+  let _longPressTimer=null;
+  let _floatOverlay=null; // {cell, clientX, clientY} for floating drag
+
+  function startLongPressDrag(cell, clientX, clientY){
+    if(st.photos[cell]===null)return;
+    _floatOverlay={cell, clientX, clientY};
+    st.selCell=cell;
+    renderWithFloat();
+    if(navigator.vibrate) navigator.vibrate(30);
+  }
+
+  function renderWithFloat(){
+    render();
+    if(!_floatOverlay) return;
+    const cell=_floatOverlay.cell;
+    const img=st.photos[cell];
+    if(!img) return;
+    const layout=ALL_LAYOUTS[st.layoutIdx];
+    const r=toRect(layout.f[cell],cvs.width,cvs.height);
+    const t=st.transforms[cell];
+    const base=Math.max(r.w/img.width,r.h/img.height);
+    const sc=base*t.sc;
+    const sw=img.width*sc,sh=img.height*sc;
+
+    // convert client coords to canvas coords
+    const rect=cvs.getBoundingClientRect();
+    const cx=(_floatOverlay.clientX-rect.left)*cvs.width/rect.width;
+    const cy=(_floatOverlay.clientY-rect.top)*cvs.height/rect.height;
+
+    // draw floating cell (80% size, centered on finger)
+    const fw=r.w*0.85, fh=r.h*0.85;
+    const fx=cx-fw/2, fy=cy-fh/2;
+    ctx.save();
+    ctx.globalAlpha=0.92;
+    ctx.shadowColor='rgba(0,0,0,0.5)';
+    ctx.shadowBlur=30/((parseFloat(cvs.style.width)||cvs.width)/cvs.width);
+    ctx.beginPath();ctx.rect(fx,fy,fw,fh);ctx.clip();
+    const fsc=Math.max(fw/img.width,fh/img.height);
+    const fsw=img.width*fsc,fsh=img.height*fsc;
+    ctx.drawImage(img,fx+(fw-fsw)/2+t.ox*(fw/r.w),fy+(fh-fsh)/2+t.oy*(fh/r.h),fsw,fsh);
+    ctx.restore();
+
+    // highlight target cell
+    const targetCell=hitCellAt(_floatOverlay.clientX,_floatOverlay.clientY);
+    if(targetCell!==null && targetCell!==cell){
+      const tr=toRect(layout.f[targetCell],cvs.width,cvs.height);
+      const lw=Math.max(2,Math.ceil(2/((parseFloat(cvs.style.width)||cvs.width)/cvs.width)));
+      ctx.save();
+      ctx.strokeStyle='#ffffff';ctx.lineWidth=lw*2;ctx.globalAlpha=0.6;
+      ctx.strokeRect(tr.x+lw,tr.y+lw,tr.w-lw*2,tr.h-lw*2);
+      ctx.restore();
+    }
+  }
+
+  function hitCellAt(clientX,clientY){
+    const p=toCanvas(clientX,clientY);
+    return hitCell(p.x,p.y);
+  }
 
   cvs.addEventListener('touchstart',e=>{
     if(st.layoutIdx===null)return;
@@ -392,23 +450,25 @@ document.getElementById('btnCheck').addEventListener('click',()=>{
       }
       const cell=hitCell(p.x,p.y);
       if(cell===null){st.selCell=null;render();gesture=null;return;}
-      // tap empty cell → immediately open picker
       if(st.photos[cell]===null){document.getElementById('fp').click();gesture=null;return;}
+
+      // start long press timer for drag-to-swap
+      _longPressTimer=setTimeout(()=>{
+        _longPressTimer=null;
+        gesture={mode:'reorder',cell,clientX:touches[0].clientX,clientY:touches[0].clientY};
+        startLongPressDrag(cell,touches[0].clientX,touches[0].clientY);
+      },400);
+
       if(st.selCell===cell){
-        // start drag on already-selected cell
         gesture={mode:'drag',cell,
           startX:p.x,startY:p.y,
           startOx:st.transforms[cell].ox,
           startOy:st.transforms[cell].oy};
-      } else if(st.selCell!==null && st.photos[cell]!==null){
-        // tap different cell while one selected → swap
-        swapCells(st.selCell, cell);
-        gesture=null;
       } else {
         st.selCell=cell;render();gesture=null;
       }
     } else if(touches.length===2&&st.selCell!==null){
-      // start pinch on selected cell
+      clearTimeout(_longPressTimer);_longPressTimer=null;_floatOverlay=null;
       const p1=toCanvas(touches[0].clientX,touches[0].clientY);
       const p2=toCanvas(touches[1].clientX,touches[1].clientY);
       const dist=Math.hypot(p2.x-p1.x,p2.y-p1.y);
@@ -422,17 +482,21 @@ document.getElementById('btnCheck').addEventListener('click',()=>{
   },{passive:false});
 
   cvs.addEventListener('touchmove',e=>{
-    if(!gesture)return;
     e.preventDefault();
     const touches=e.touches;
+    if(_longPressTimer){clearTimeout(_longPressTimer);_longPressTimer=null;}
+    if(!gesture)return;
     const t=st.transforms[gesture.cell];
     const layout=ALL_LAYOUTS[st.layoutIdx];
     const r=toRect(layout.f[gesture.cell],cvs.width,cvs.height);
-    if(gesture.mode==='drag'&&touches.length>=1){
+
+    if(gesture.mode==='reorder'&&touches.length>=1){
+      _floatOverlay={cell:gesture.cell,clientX:touches[0].clientX,clientY:touches[0].clientY};
+      renderWithFloat();
+    } else if(gesture.mode==='drag'&&touches.length>=1){
       const p=toCanvas(touches[0].clientX,touches[0].clientY);
       let ox=gesture.startOx+(p.x-gesture.startX);
       let oy=gesture.startOy+(p.y-gesture.startY);
-      // clamp so image stays covering cell
       const img=st.photos[gesture.cell];
       const base=Math.max(r.w/img.width,r.h/img.height);
       const sc=base*t.sc;
@@ -447,9 +511,8 @@ document.getElementById('btnCheck').addEventListener('click',()=>{
       const p2=toCanvas(touches[1].clientX,touches[1].clientY);
       const dist=Math.hypot(p2.x-p1.x,p2.y-p1.y);
       let sc=gesture.startSc*(dist/gesture.startDist);
-      sc=Math.max(1,Math.min(4,sc)); // 1x to 4x
+      sc=Math.max(1,Math.min(4,sc));
       t.sc=sc;
-      // clamp offset
       const img=st.photos[gesture.cell];
       const base=Math.max(r.w/img.width,r.h/img.height);
       const sw=img.width*base*sc,sh=img.height*base*sc;
@@ -461,10 +524,20 @@ document.getElementById('btnCheck').addEventListener('click',()=>{
   },{passive:false});
 
   cvs.addEventListener('touchend',e=>{
-    if(!gesture)return;
     e.preventDefault();
-    // tap detection: if touchstart+touchend with no move = select/deselect
+    clearTimeout(_longPressTimer);_longPressTimer=null;
+    if(gesture&&gesture.mode==='reorder'){
+      const touch=e.changedTouches[0];
+      const targetCell=hitCellAt(touch.clientX,touch.clientY);
+      _floatOverlay=null;
+      if(targetCell!==null&&targetCell!==gesture.cell&&st.photos[targetCell]!==null){
+        swapCells(gesture.cell,targetCell);
+      } else {
+        render();
+      }
+    }
     gesture=null;
+    _floatOverlay=null;
   },{passive:false});
 
   // Mouse fallback (desktop)
@@ -521,7 +594,6 @@ document.getElementById('btnCheck').addEventListener('click',()=>{
     if(cell===null){st.selCell=null;render();return;}
     if(st.photos[cell]===null){document.getElementById('fp').click();return;}
     if(st.selCell===cell){st.repCell=cell;document.getElementById('fr').click();}
-    else if(st.selCell!==null && st.photos[cell]!==null){swapCells(st.selCell,cell);}
     else{st.selCell=cell;render();}
   });
 
