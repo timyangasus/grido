@@ -239,12 +239,12 @@ function render(){
     const bw=Math.round(6/scale);
     ctx.strokeStyle='#00E5CC';ctx.lineWidth=bw;
     ctx.strokeRect(r.x+bw/2,r.y+bw/2,r.w-bw,r.h-bw);
-    const xr=Math.round(14/scale),xpad=Math.round(16/scale);
+    const xr=Math.round(10/scale),xpad=Math.round(4/scale);
     const xcx=r.x+r.w-xr-xpad,xcy=r.y+xr+xpad;
     ctx.fillStyle='rgba(0,0,0,0.75)';ctx.beginPath();ctx.arc(xcx,xcy,xr,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle='#fff';ctx.lineWidth=Math.round(2/scale);
+    ctx.strokeStyle='#fff';ctx.lineWidth=Math.round(1/scale);
     ctx.beginPath();ctx.arc(xcx,xcy,xr,0,Math.PI*2);ctx.stroke();
-    ctx.lineWidth=Math.round(3/scale);const arm=Math.round(5/scale);
+    ctx.lineWidth=Math.round(1.5/scale);const arm=Math.round(3.5/scale);
     ctx.beginPath();ctx.moveTo(xcx-arm,xcy-arm);ctx.lineTo(xcx+arm,xcy+arm);ctx.stroke();
     ctx.beginPath();ctx.moveTo(xcx+arm,xcy-arm);ctx.lineTo(xcx-arm,xcy+arm);ctx.stroke();
   }
@@ -378,7 +378,7 @@ document.getElementById('btnCheck').addEventListener('click',()=>{
       // check X button on selected cell
       if(st.selCell!==null){
         const r=toRect(layout.f[st.selCell],cvs.width,cvs.height);
-        const xr=Math.round(10/scale),xpad=Math.round(6/scale);
+        const xr=Math.round(10/scale),xpad=Math.round(4/scale);
         const xcx=r.x+r.w-xr-xpad,xcy=r.y+xr+xpad;
         if(Math.hypot(p.x-xcx,p.y-xcy)<=xr*1.8){
           const np=[...st.photos];np.splice(st.selCell,1);
@@ -505,7 +505,7 @@ document.getElementById('btnCheck').addEventListener('click',()=>{
     const scale=(parseFloat(cvs.style.width)||cvs.width)/cvs.width;
     if(st.selCell!==null){
       const r=toRect(layout.f[st.selCell],cvs.width,cvs.height);
-      const xr=Math.round(10/scale),xpad=Math.round(6/scale);
+      const xr=Math.round(10/scale),xpad=Math.round(4/scale);
       const xcx=r.x+r.w-xr-xpad,xcy=r.y+xr+xpad;
       if(Math.hypot(p.x-xcx,p.y-xcy)<=xr*1.5){
         const np=[...st.photos];np.splice(st.selCell,1);
