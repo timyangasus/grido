@@ -809,16 +809,21 @@ function setupAddInput(id){
         poolAddImgs(imgs, filesCopy);
       }).catch(()=>{});
     } else {
-      // Layout/Ratio tab: fill canvas slots directly
-      const layoutMax=st.layoutIdx!==null?ALL_LAYOUTS[st.layoutIdx].n:9;
-      const slots=layoutMax-before.length;
-      if(slots<=0){showToast('版型已滿');return;}
-      Promise.all(files.slice(0,slots).map(loadImg)).then(imgs=>{
-        const target=st.layoutIdx!==null?ALL_LAYOUTS[st.layoutIdx].n:imgs.length;
-        const merged=[...before,...imgs];
-        const padded=[...merged,...new Array(Math.max(0,target-merged.length)).fill(null)];
-        st.photos=padded.slice(0,target);
-        st.transforms=st.photos.map((_,i)=>st.transforms[i]||{sc:1,ox:0,oy:0});
+      // fp: fill canvas directly, auto-expand layout 1→2→...→9
+      const filled=before.length;
+      const toAdd=Math.min(files.length, 9-filled);
+      if(toAdd<=0){showToast('最多9張');return;}
+      Promise.all(files.slice(0,toAdd).map(loadImg)).then(imgs=>{
+        const newTotal=filled+imgs.length;
+        // find matching layout or nearest
+        let li=ALL_LAYOUTS.findIndex(l=>l.n===newTotal);
+        if(li<0) li=ALL_LAYOUTS.findIndex(l=>l.n===Math.min(newTotal,9));
+        if(li<0) li=0;
+        const newPhotos=[...before,...imgs];
+        st.photos=[...newPhotos,...new Array(ALL_LAYOUTS[li].n-newPhotos.length).fill(null)];
+        st.transforms=st.photos.map((_,i)=>({sc:1,ox:0,oy:0}));
+        st.layoutIdx=li;
+        st.selCell=null;
         showCanvas();render();renderThumbGrid();updateAlbumUI();renderCardIndicator();
       }).catch(()=>{});
     }
