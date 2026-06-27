@@ -171,6 +171,7 @@ const ALL_LAYOUTS=[
   {n:5,f:[{x:0,y:0,w:_h,h:_h},{x:_h,y:0,w:_h,h:_h},{x:0,y:_h,w:_t,h:_h},{x:_t,y:_h,w:_t,h:_h},{x:_t*2,y:_h,w:_t,h:_h}]},
   {n:5,f:[{x:0,y:0,w:_h,h:_h},{x:0,y:_h,w:_h,h:_h},{x:_h,y:0,w:_h,h:_t},{x:_h,y:_t,w:_h,h:_t},{x:_h,y:_t*2,w:_h,h:_t}]},
   {n:5,f:[{x:0,y:0,w:_h,h:2/3},{x:0,y:2/3,w:_h,h:1/3},{x:_h,y:0,w:_h,h:_t},{x:_h,y:_t,w:_h,h:_t},{x:_h,y:_t*2,w:_h,h:_t}]},
+  {n:5,f:[{x:0,y:0,w:2/3,h:_h},{x:2/3,y:0,w:1/3,h:_h},{x:0,y:_h,w:_t,h:_h},{x:_t,y:_h,w:_t,h:_h},{x:_t*2,y:_h,w:_t,h:_h}]},
   {n:6,f:[{x:0,y:0,w:_h,h:_t},{x:0,y:_t,w:_h,h:_t},{x:0,y:_t*2,w:_h,h:_t},{x:_h,y:0,w:_h,h:_t},{x:_h,y:_t,w:_h,h:_t},{x:_h,y:_t*2,w:_h,h:_t}]},
   {n:6,f:[{x:0,y:0,w:_t,h:_h},{x:_t,y:0,w:_t,h:_h},{x:_t*2,y:0,w:_t,h:_h},{x:0,y:_h,w:_t,h:_h},{x:_t,y:_h,w:_t,h:_h},{x:_t*2,y:_h,w:_t,h:_h}]},
   {n:7,f:[{x:0,y:0,w:1,h:_t},{x:0,y:_t,w:_t,h:_t},{x:_t,y:_t,w:_t,h:_t},{x:_t*2,y:_t,w:_t,h:_t},{x:0,y:_t*2,w:_t,h:_t},{x:_t,y:_t*2,w:_t,h:_t},{x:_t*2,y:_t*2,w:_t,h:_t}]},
@@ -530,7 +531,11 @@ document.getElementById('btnResetLayout').addEventListener('click',()=>{
   st.transforms=st.photos.map(()=>({sc:1,ox:0,oy:0}));
   st.layoutIdx=ALL_LAYOUTS.findIndex(l=>l.n===6);
   st.selCell=null;
-  showCanvas();render();renderThumbGrid();updateAlbumUI();
+  showCanvas();
+  renderThumbGrid();
+  updateAlbumUI();
+  // wait for DOM layout (thumbnails) to settle before sizing canvas
+  requestAnimationFrame(()=>requestAnimationFrame(render));
 });
 
 // ── Delete all ────────────────────────────────────────────────────────────────
