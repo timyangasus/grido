@@ -244,10 +244,16 @@ function renderCellOverlays(){
   const previewRect=previewEl.getBoundingClientRect();
   const scaleX=cvRect.width/cvs.width;
   const scaleY=cvRect.height/cvs.height;
+  // Only show overlays when in Layout/Ratio tab (intentional empty slots)
+  const activeTab=document.querySelector('.tabbtn.on')?.dataset.tab;
+  if(activeTab==='Album'){
+    overlays.style.pointerEvents='none';
+    return;
+  }
   layout.f.forEach((f,i)=>{
     if(st.photos[i]!==null)return;
     const lbl=document.createElement('label');
-    lbl.htmlFor='fr';
+    lbl.htmlFor='fp';
     lbl.style.cssText='position:absolute;display:block;cursor:pointer;z-index:3;';
     lbl.style.left=(cvRect.left-previewRect.left+f.x*cvs.width*scaleX)+'px';
     lbl.style.top=(cvRect.top-previewRect.top+f.y*cvs.height*scaleY)+'px';
@@ -881,11 +887,8 @@ document.getElementById('btnExportBorder').addEventListener('click',async()=>{
   if(!bst.photos.length){showToast('沒有照片');return;}
   showToast('處理中...');
   const SIZE=3000;
-  const BORDER=Math.round(SIZE*0.03); // 3% border
-  // inner area is 2:3 ratio centered in the square
-  const innerW=SIZE-BORDER*2;
-  const innerH=Math.round(innerW*3/2); // 2:3 = width:height
-  const innerOffsetY=Math.round((SIZE-innerH)/2);
+  const BORDER=Math.round(SIZE*0.03); // 3% border each side
+  const inner=SIZE-BORDER*2; // available space inside border
   for(let i=0;i<bst.photos.length;i++){
     const img=bst.photos[i];
     const ec=document.createElement('canvas');
@@ -893,11 +896,11 @@ document.getElementById('btnExportBorder').addEventListener('click',async()=>{
     const ectx=ec.getContext('2d');
     ectx.fillStyle='#ffffff';
     ectx.fillRect(0,0,SIZE,SIZE);
-    // fit photo into 2:3 inner area (contain, centered)
-    const sc=Math.min(innerW/img.width,innerH/img.height);
+    // preserve original aspect ratio, fit within inner square
+    const sc=Math.min(inner/img.width,inner/img.height);
     const sw=img.width*sc,sh=img.height*sc;
-    const dx=BORDER+(innerW-sw)/2;
-    const dy=innerOffsetY+(innerH-sh)/2;
+    const dx=BORDER+(inner-sw)/2;
+    const dy=BORDER+(inner-sh)/2;
     ectx.drawImage(img,dx,dy,sw,sh);
     await new Promise(resolve=>{
       ec.toBlob(async blob=>{
