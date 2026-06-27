@@ -22,6 +22,8 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .nav-icons{display:flex;align-items:center;gap:10px;}
 .nav-dropdown{position:absolute;top:100%;left:0;right:0;background:var(--s1);border-bottom:.5px solid var(--bd);z-index:50;display:none;animation:slideDown .18s ease;}
 .nav-dropdown.on{display:block;}
+.nav-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.4);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:49;display:none;}
+.nav-backdrop.on{display:block;}
 @keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
 .nav-icon{background:none;border:none;color:var(--t1);cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%}
 .nav-icon:active{background:var(--s2)}
@@ -59,8 +61,8 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .acount{flex:1;font-size:11px;color:var(--t1);font-weight:500;text-align:center}
 .layout-bar{display:flex;align-items:center;padding:8px 20px 0;background:var(--s1);}
 .lgrid{display:flex;flex-wrap:wrap;gap:10px;padding:10px 12px;}
-.lthumb{cursor:pointer;opacity:.4;transition:opacity .12s}
-.lthumb.on{opacity:1}
+.lthumb{cursor:pointer;flex-shrink:0;line-height:0;}
+.lthumb.on{}
 .lthumb canvas{display:block}
 
 .rpanel{padding:12px 16px 10px}
@@ -91,6 +93,7 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 
 <div id="app">
   <div class="page-container">
+    <div class="nav-backdrop" id="navBackdrop"></div>
     <div class="nav" style="position:relative;z-index:51">
       <span class="nav-title">Grido</span>
       <div class="nav-icons">
@@ -232,6 +235,7 @@ function closeDropdowns(){
   document.getElementById('dropRatio').classList.remove('on');
   document.getElementById('btnNavLayout').classList.remove('on');
   document.getElementById('btnNavRatio').classList.remove('on');
+  const bd=document.getElementById('navBackdrop');if(bd)bd.classList.remove('on');
 }
 // ── Cards state ──────────────────────────────────────────────────────────────
 function makeCard(){
@@ -514,12 +518,10 @@ function renderThumbGrid(){
     const isOn=idx===st.layoutIdx;
     wrap.className='lthumb'+(isOn?' on':'');
     const TSIZE=64;const dpr=window.devicePixelRatio||1;
-    const tc=document.createElement('canvas');tc.width=TSIZE*dpr;tc.height=TSIZE*dpr;tc.style.cssText='display:block;';
+    const tc=document.createElement('canvas');tc.width=TSIZE*dpr;tc.height=TSIZE*dpr;tc.style.cssText='display:block;width:'+TSIZE+'px;height:'+TSIZE+'px;';
     const tctx=tc.getContext('2d');tctx.scale(dpr,dpr);
-    tctx.globalAlpha=isOn?0.9:0.45;
-    tctx.strokeStyle='#ffffff';
+    tctx.strokeStyle=isOn?'#ffffff':'#666666';
     drawBorders(tctx,layout.f,TSIZE,TSIZE,1);
-    tctx.globalAlpha=1;
     wrap.appendChild(tc);
     wrap.addEventListener('click',()=>{
       const n=layout.n;
@@ -826,6 +828,7 @@ document.getElementById('btnNavLayout').addEventListener('click',()=>{
   if(!isOn){
     drop.classList.add('on');
     document.getElementById('btnNavLayout').classList.add('on');
+    document.getElementById('navBackdrop').classList.add('on');
     renderThumbGridDrop();
   }
 });
@@ -836,8 +839,10 @@ document.getElementById('btnNavRatio').addEventListener('click',()=>{
   if(!isOn){
     drop.classList.add('on');
     document.getElementById('btnNavRatio').classList.add('on');
+    document.getElementById('navBackdrop').classList.add('on');
   }
 });
+document.getElementById('navBackdrop').addEventListener('click',closeDropdowns);
 // close dropdowns when tapping outside
 document.getElementById('preview').addEventListener('touchstart',()=>closeDropdowns(),{passive:true});
 document.getElementById('preview').addEventListener('click',()=>closeDropdowns());
@@ -871,12 +876,10 @@ function renderThumbGridDrop(){
     const isOn=idx===st.layoutIdx;
     wrap.className='lthumb'+(isOn?' on':'');
     const TSIZE=64;const dpr=window.devicePixelRatio||1;
-    const tc=document.createElement('canvas');tc.width=TSIZE*dpr;tc.height=TSIZE*dpr;tc.style.cssText='display:block;';
+    const tc=document.createElement('canvas');tc.width=TSIZE*dpr;tc.height=TSIZE*dpr;tc.style.cssText='display:block;width:'+TSIZE+'px;height:'+TSIZE+'px;';
     const tctx=tc.getContext('2d');tctx.scale(dpr,dpr);
-    tctx.globalAlpha=isOn?0.9:0.45;
-    tctx.strokeStyle='#ffffff';
+    tctx.strokeStyle=isOn?'#ffffff':'#666666';
     drawBorders(tctx,layout.f,TSIZE,TSIZE,1);
-    tctx.globalAlpha=1;
     wrap.appendChild(tc);
     wrap.addEventListener('click',()=>{
       const n=layout.n;
