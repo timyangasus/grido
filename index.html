@@ -86,7 +86,7 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .border-cell .del-btn{position:absolute;top:4px;right:4px;width:22px;height:22px;background:rgba(0,0,0,0.7);border-radius:50%;border:none;color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:1}
 .border-bar{flex-shrink:0;display:flex;align-items:center;padding:10px 20px;gap:10px;background:var(--s1);border-top:.5px solid var(--bd)}
 .pill-btn{background:#000;color:#fff;border:none;border-radius:999px;padding:11px 28px;font-size:14px;font-weight:500;cursor:pointer;margin-left:auto;-webkit-tap-highlight-color:transparent;}
-#btnCardDone{width:44px;height:44px;padding:0;font-size:16px;font-weight:700;border-radius:50%;}
+#btnCardDone{width:28px;height:28px;padding:0;font-size:10px;font-weight:700;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
 .pill-btn.dim{opacity:.3;}
 .pill-btn:active{opacity:.7}
 .pill-btn.done{background:#007AFF;color:#fff;}
@@ -135,16 +135,20 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
       </div>
       <!-- Bottom: pool bar (arrows + delete + add + done) -->
       <div class="pool-bar" style="justify-content:space-between;">
-        <button id="btnPrevCard" class="iBtn" style="font-size:24px;width:40px;height:40px;background:rgba(0,0,0,0.6);border-radius:50%;color:#fff;">‹</button>
-        <button class="iBtn dim" id="btnPoolClear">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-272h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
-        </button>
-        <button class="pill-btn dim" id="btnCardDone" style="margin-left:0;">完成 (1/1)</button>
-        <label class="iBtn" style="cursor:pointer">
-          <input type="file" id="fp2" accept="image/*" multiple class="real-file-input">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
-        </label>
-        <button id="btnNextCard" class="iBtn" style="font-size:24px;width:40px;height:40px;background:rgba(0,0,0,0.6);border-radius:50%;color:#fff;">›</button>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <button id="btnPrevCard" class="iBtn" style="font-size:24px;width:40px;height:40px;background:rgba(0,0,0,0.6);border-radius:50%;color:#fff;">‹</button>
+          <button class="iBtn dim" id="btnPoolClear">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-272h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
+          </button>
+        </div>
+        <button class="pill-btn" id="btnCardDone" style="margin:0 auto;">1</button>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <label class="iBtn" style="cursor:pointer">
+            <input type="file" id="fp2" accept="image/*" multiple class="real-file-input">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
+          </label>
+          <button id="btnNextCard" class="iBtn" style="font-size:24px;width:40px;height:40px;background:rgba(0,0,0,0.6);border-radius:50%;color:#fff;">›</button>
+        </div>
       </div>
       <div class="pool-grid" id="poolGrid"></div>
     </div>
@@ -929,62 +933,41 @@ function renderThumbGridDrop(){
 }
 
 document.getElementById('btnPoolClear').addEventListener('click',()=>{
-  const hasCanvas=cards[cardIdx].photos.some(p=>p!==null);
-  const hasPool=pool.length>0;
-  if(!hasCanvas&&!hasPool)return;
+  const hasAny=cards.some(c=>c.photos.some(p=>p!==null))||pool.length>0;
+  if(!hasAny)return;
 
-  // Build action sheet options
-  const options=[];
-  if(hasCanvas) options.push({label:'刪除拼圖',action:'canvas'});
-  if(hasPool) options.push({label:'刪除縮圖',action:'pool'});
-  if(hasCanvas&&hasPool) options.push({label:'全部刪除',action:'all'});
-  options.push({label:'取消',action:'cancel'});
+  function doReset(resetCanvas,resetPool){
+    if(resetCanvas){
+      cards.length=0;cards.push(makeCard());cardIdx=0;st.selCell=null;st.repCell=null;
+      hideCanvas();renderCardIndicator();updateAlbumUI();
+    }
+    if(resetPool){pool.length=0;poolRender();}
+  }
 
-  // Show native-style action sheet via overlay
+  const options=[
+    {label:'刪除版型全部',action:'canvas'},
+    {label:'刪除縮圖全部',action:'pool'},
+    {label:'全部',action:'all'},
+    {label:'取消',action:'cancel'},
+  ];
   const sheet=document.createElement('div');
   sheet.style.cssText='position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;justify-content:flex-end;background:rgba(0,0,0,0.5);';
   const box=document.createElement('div');
-  box.style.cssText='background:#1C1C1E;border-radius:14px 14px 0 0;padding:8px 0 env(safe-area-inset-bottom,0);margin:0;';
+  box.style.cssText='background:#1C1C1E;border-radius:14px 14px 0 0;padding:8px 0 env(safe-area-inset-bottom,0);';
   options.forEach(opt=>{
     const btn=document.createElement('button');
     btn.textContent=opt.label;
-    const isCancel=opt.action==='cancel';
-    const isDanger=opt.action!=='cancel';
-    btn.style.cssText='display:block;width:100%;padding:16px;background:none;border:none;border-top:.5px solid #3A3A3C;font-size:17px;cursor:pointer;color:'+(isCancel?'#fff':isDanger?'#FF453A':'#fff')+';';
+    btn.style.cssText='display:block;width:100%;padding:16px;background:none;border:none;border-top:.5px solid #3A3A3C;font-size:17px;cursor:pointer;color:'+(opt.action==='cancel'?'#fff':'#FF453A')+';';
     btn.addEventListener('click',()=>{
       document.body.removeChild(sheet);
-      if(opt.action==='cancel') return;
-      if(opt.action==='all'){
-        // full reset: cards, pool, back to initial state
-        cards.length=0;
-        cards.push(makeCard());
-        cardIdx=0;
-        pool.length=0;
-        st.selCell=null;st.repCell=null;
-        hideCanvas();
-        poolRender();
-        renderCardIndicator();
-        updateAlbumUI();
-      } else if(opt.action==='canvas'){
-        cards[cardIdx].photos.forEach((p,i)=>{
-          if(p){
-            const item=pool.find(it=>it.img===p);
-            if(item){item.used=false;const c2=document.querySelectorAll('#poolGrid .pool-cell')[pool.indexOf(item)];if(c2)c2.classList.remove('used');}
-            cards[cardIdx].photos[i]=null;cards[cardIdx].transforms[i]={sc:1,ox:0,oy:0};
-          }
-        });
-        cards[cardIdx].done=false;
-        render();renderCellOverlays();updateAlbumUI();renderCardIndicator();
-        if(!cards[cardIdx].photos.some(p=>p!==null)) hideCanvas();
-      } else if(opt.action==='pool'){
-        pool.length=0;
-        poolRender();
-      }
+      if(opt.action==='canvas') doReset(true,false);
+      else if(opt.action==='pool') doReset(false,true);
+      else if(opt.action==='all') doReset(true,true);
     });
     box.appendChild(btn);
   });
   sheet.appendChild(box);
-  sheet.addEventListener('click',e=>{if(e.target===sheet){document.body.removeChild(sheet);}});
+  sheet.addEventListener('click',e=>{if(e.target===sheet)document.body.removeChild(sheet);});
   document.body.appendChild(sheet);
 });
 
