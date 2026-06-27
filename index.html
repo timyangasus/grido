@@ -114,15 +114,17 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
       </div>
     </div>
     <div id="panelBorder">
-      <div class="border-empty" id="borderEmpty" onclick="document.getElementById('fb').click()">
+      <label class="border-empty" id="borderEmpty" style="cursor:pointer">
+        <input type="file" id="fb" accept="image/*" multiple class="real-file-input">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-480ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h320v80H200v560h560v-320h80v320q0 33-23.5 56.5T760-120H200Zm40-160h480L570-480 450-320l-90-120-120 160Zm440-320v-80h-80v-80h80v-80h80v80h80v80h-80v80h-80Z"/></svg>
         <p>點此加入照片</p>
-      </div>
+      </label>
       <div class="border-grid" id="borderGrid" style="display:none"></div>
       <div class="border-bar" id="borderBar" style="display:none">
-        <button class="iBtn" onclick="document.getElementById('fb').click()">
+        <label class="iBtn" style="cursor:pointer">
+          <input type="file" id="fb2" accept="image/*" multiple class="real-file-input">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
-        </button>
+        </label>
         <button class="iBtn" id="btnDelBorder">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-272h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
         </button>
@@ -148,7 +150,6 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
     </button>
   </div>
 </div>
-<input type="file" id="fb" accept="image/*" multiple style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px;top:-9999px">
 <input type="file" id="fr" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px;top:-9999px">
 <label id="replaceLabel" style="position:fixed;display:none;z-index:20;cursor:pointer"><input type="file" id="frInner" accept="image/*" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px;"></label>
 
@@ -873,25 +874,31 @@ function bRenderGrid(){
 
 // fb input: load photos for border
 (function(){
-  const inp=document.getElementById('fb');
-  let _lock=false;
-  inp.addEventListener('change',function(){
-    const files=Array.from(this.files);
-    const before=bst.photos.slice();
-    _lock=true;
-    const self=this;
-    setTimeout(()=>{try{self.value='';}catch(e){}_lock=false;},100);
-    if(!files.length)return;
-    Promise.all(files.map(f=>new Promise((res,rej)=>{
-      const r=new FileReader();
-      r.onerror=rej;
-      r.onload=ev=>{const i=new Image();i.onerror=rej;i.onload=()=>res(i);i.src=ev.target.result;};
-      r.readAsDataURL(f);
-    }))).then(imgs=>{
-      bst.photos=[...before,...imgs];
-      bRenderGrid();bUpdateUI();
-    }).catch(()=>{});
-  });
+  function setupFb(id){
+    const inp=document.getElementById(id);
+    if(!inp)return;
+    let _lock=false;
+    inp.addEventListener('change',function(){
+      if(_lock)return;
+      const files=Array.from(this.files);
+      const before=bst.photos.slice();
+      _lock=true;
+      const self=this;
+      setTimeout(()=>{try{self.value='';}catch(e){}_lock=false;},100);
+      if(!files.length)return;
+      Promise.all(files.map(f=>new Promise((res,rej)=>{
+        const r=new FileReader();
+        r.onerror=rej;
+        r.onload=ev=>{const i=new Image();i.onerror=rej;i.onload=()=>res(i);i.src=ev.target.result;};
+        r.readAsDataURL(f);
+      }))).then(imgs=>{
+        bst.photos=[...before,...imgs];
+        bRenderGrid();bUpdateUI();
+      }).catch(()=>{});
+    });
+  }
+  setupFb('fb');
+  setupFb('fb2');
 })();
 
 // delete all border photos
