@@ -30,7 +30,7 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .real-file-input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:5;}
 #cellOverlays{position:absolute;inset:0;pointer-events:none;z-index:6;}
 .cell-file-label{position:absolute;display:block;cursor:pointer;pointer-events:auto;}
-.cell-file-label input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;}
+.cell-file-label input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;pointer-events:auto;}
 #gc{display:block;border-radius:0;max-width:100%;max-height:100%}
 .panels{flex-shrink:0;background:var(--s1);border-top:.5px solid var(--bd)}
 .panel{display:none}
@@ -315,7 +315,7 @@ function renderCellOverlays(){
     lbl.appendChild(inp);
     overlays.appendChild(lbl);
   });
-  overlays.style.pointerEvents = overlays.children.length > 0 ? 'auto' : 'none';
+  overlays.style.pointerEvents = 'none';
 }
 function render(){
   if(st.layoutIdx===null)return;
