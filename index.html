@@ -375,25 +375,18 @@ function cardToggleDone(){
 }
 
 // pool used = any card uses that photo
-function poolSyncUsedFast(){
+function poolSyncUsedFast(){ poolSyncUsed(); }
+
+function poolSyncUsed(){
   if(!pool.length)return;
   const grid=document.getElementById('poolGrid');
   if(!grid)return;
   const cells=grid.querySelectorAll('.pool-cell');
-  if(!cells.length)return;
   pool.forEach((item,i)=>{
-    const wasUsed=item.used;
-    item.used=cards.some(card=>card.photos.includes(item.img));
-    if(wasUsed!==item.used && cells[i])
-      cells[i].classList.toggle('used',item.used);
+    const usedNow=cards.some(card=>card.photos.includes(item.img));
+    item.used=usedNow;
+    if(cells[i]) cells[i].classList.toggle('used',usedNow);
   });
-}
-
-function poolSyncUsed(){
-  pool.forEach(item=>{
-    item.used=cards.some(card=>card.photos.includes(item.img));
-  });
-  poolRender();
 }
 
 function renderCellOverlays(){
@@ -501,7 +494,6 @@ function render(){
     ctx.beginPath();ctx.moveTo(xcx+arm,xcy-arm);ctx.lineTo(xcx-arm,xcy+arm);ctx.stroke();
   }
   requestAnimationFrame(renderCellOverlays);
-  poolSyncUsed();
 }
 function renderThumbGrid(){
   const grid=document.getElementById('lgrid');grid.innerHTML='';
