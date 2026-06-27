@@ -239,37 +239,54 @@ function renderCellOverlays(){
   const overlays=document.getElementById('cellOverlays');
   if(!overlays||st.layoutIdx===null)return;
   const layout=ALL_LAYOUTS[st.layoutIdx];
+  // restore fpl to body if it was moved
+  const fplInp=document.getElementById('fpl');
+  if(fplInp.parentNode!==document.body) document.body.appendChild(fplInp);
+  fplInp.style.cssText='position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px;top:-9999px';
   overlays.innerHTML='';
+  const activeTab=document.querySelector('.tabbtn.on')?.dataset.tab;
+  if(activeTab==='Album'){overlays.style.pointerEvents='none';return;}
   const cvRect=cvs.getBoundingClientRect();
   const previewEl=document.getElementById('preview');
   const previewRect=previewEl.getBoundingClientRect();
   const scaleX=cvRect.width/cvs.width;
   const scaleY=cvRect.height/cvs.height;
-  // Only show overlays when in Layout/Ratio tab (intentional empty slots)
-  const activeTab=document.querySelector('.tabbtn.on')?.dataset.tab;
-  if(activeTab==='Album'){
-    overlays.style.pointerEvents='none';
-    return;
-  }
-  let fplMoved=false;
+  let firstNull=true;
   layout.f.forEach((f,i)=>{
     if(st.photos[i]!==null)return;
-    const lbl=document.createElement('label');
-    lbl.htmlFor='fpl';
-    lbl.style.cssText='position:absolute;display:block;cursor:pointer;z-index:3;-webkit-tap-highlight-color:transparent;';
-    lbl.style.left=(cvRect.left-previewRect.left+f.x*cvs.width*scaleX)+'px';
-    lbl.style.top=(cvRect.top-previewRect.top+f.y*cvs.height*scaleY)+'px';
-    lbl.style.width=(f.w*cvs.width*scaleX)+'px';
-    lbl.style.height=(f.h*cvs.height*scaleY)+'px';
-    lbl.addEventListener('pointerdown',()=>{st.repCell=i;},true);
-    // Move fpl input inside first null cell label for iOS Safari
-    if(!fplMoved){
-      const fplInp=document.getElementById('fpl');
-      fplInp.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px;';
-      lbl.appendChild(fplInp);
-      fplMoved=true;
+    const left=cvRect.left-previewRect.left+f.x*cvs.width*scaleX;
+    const top=cvRect.top-previewRect.top+f.y*cvs.height*scaleY;
+    const w=f.w*cvs.width*scaleX;
+    const h=f.h*cvs.height*scaleY;
+    if(firstNull){
+      // Place the actual input (with multiple) directly over first null cell
+      fplInp.style.cssText=[
+        'position:absolute',
+        'left:'+left+'px',
+        'top:'+top+'px',
+        'width:'+w+'px',
+        'height:'+h+'px',
+        'opacity:0',
+        'cursor:pointer',
+        'z-index:4',
+        'font-size:16px',
+      ].join(';');
+      fplInp.addEventListener('pointerdown',function onpd(){
+        st.repCell=i;
+        fplInp.removeEventListener('pointerdown',onpd);
+      },{once:true});
+      overlays.appendChild(fplInp);
+      firstNull=false;
+    } else {
+      // Other null cells: transparent div that triggers fpl click
+      const div=document.createElement('div');
+      div.style.cssText='position:absolute;z-index:3;cursor:pointer;';
+      div.style.left=left+'px';div.style.top=top+'px';
+      div.style.width=w+'px';div.style.height=h+'px';
+      div.addEventListener('pointerdown',()=>{st.repCell=i;});
+      div.addEventListener('click',()=>fplInp.click());
+      overlays.appendChild(div);
     }
-    overlays.appendChild(lbl);
   });
   overlays.style.pointerEvents=overlays.children.length>0?'auto':'none';
 }
