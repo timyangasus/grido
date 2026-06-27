@@ -433,7 +433,29 @@ function switchTab(tab){
   }
   document.querySelectorAll('.tabbtn').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
   document.querySelectorAll('.panels .panel').forEach(p=>p.classList.toggle('on',p.id==='panel'+tab));
-  if(tab==='Layout'){renderThumbGrid();if(st.layoutIdx!==null)requestAnimationFrame(render);}
+  if(tab==='Layout'){
+    renderThumbGrid();
+    if(st.layoutIdx!==null)requestAnimationFrame(render);
+    // scroll lgrid to first layout matching current photo count
+    requestAnimationFrame(()=>{
+      const grid=document.getElementById('lgrid');
+      if(!grid)return;
+      const count=st.photos.filter(p=>p!==null).length||st.photos.length;
+      const thumbs=grid.querySelectorAll('.lthumb');
+      // find first thumb matching count
+      let targetIdx=0;
+      let found=false;
+      ALL_LAYOUTS.forEach((layout,idx)=>{
+        if(!found && layout.n===count){
+          found=true;
+          targetIdx=idx;
+        }
+      });
+      // scroll to that thumb
+      const target=thumbs[targetIdx];
+      if(target) grid.scrollLeft=target.offsetLeft-12;
+    });
+  }
 }
 
 // ── Add photos ───────────────────────────────────────────────────────────────
