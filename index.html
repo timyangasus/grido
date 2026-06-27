@@ -51,8 +51,8 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .tabbtn svg{width:21px;height:21px}
 .toast{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.82);color:#fff;font-size:13px;padding:10px 20px;border-radius:22px;pointer-events:none;opacity:0;transition:opacity .25s;white-space:nowrap;z-index:10}
 .toast.show{opacity:1}
-#panelBorder{display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0}
-#panelBorder.on{display:flex}
+#panelBorder{display:none;flex-direction:column;width:100%;overflow:hidden;min-height:0;position:absolute;top:0;left:0;right:0;bottom:0;background:var(--bg)}
+#panelBorder.on{display:flex;z-index:5}
 .border-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--t3);cursor:pointer}
 .border-empty svg{width:72px;height:72px;opacity:.6}
 .border-empty p{font-size:12px;font-weight:500;opacity:.6}
@@ -107,15 +107,15 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
       </div>
     </div>
     <div id="panelBorder">
-      <label for="fb" class="border-empty" id="borderEmpty">
+      <div class="border-empty" id="borderEmpty" onclick="document.getElementById('fb').click()">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-480ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h320v80H200v560h560v-320h80v320q0 33-23.5 56.5T760-120H200Zm40-160h480L570-480 450-320l-90-120-120 160Zm440-320v-80h-80v-80h80v-80h80v80h80v80h-80v80h-80Z"/></svg>
         <p>點此加入照片</p>
-      </label>
+      </div>
       <div class="border-grid" id="borderGrid" style="display:none"></div>
       <div class="border-bar" id="borderBar" style="display:none">
-        <label class="iBtn" for="fb" style="cursor:pointer">
+        <button class="iBtn" onclick="document.getElementById('fb').click()">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
-        </label>
+        </button>
         <button class="iBtn" id="btnDelBorder">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-272h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
         </button>
@@ -812,20 +812,23 @@ document.getElementById('btnExportBorder').addEventListener('click',async()=>{
   if(!bst.photos.length){showToast('沒有照片');return;}
   showToast('處理中...');
   const SIZE=3000;
-  const BORDER=Math.round(SIZE*12/100); // 12% border
+  const BORDER=Math.round(SIZE*0.05); // 5% border
+  // inner area is 2:3 ratio centered in the square
+  const innerW=SIZE-BORDER*2;
+  const innerH=Math.round(innerW*3/2); // 2:3 = width:height
+  const innerOffsetY=Math.round((SIZE-innerH)/2);
   for(let i=0;i<bst.photos.length;i++){
     const img=bst.photos[i];
     const ec=document.createElement('canvas');
     ec.width=SIZE;ec.height=SIZE;
     const ectx=ec.getContext('2d');
-    // white background
     ectx.fillStyle='#ffffff';
     ectx.fillRect(0,0,SIZE,SIZE);
-    // draw image centered with border, object-fit cover
-    const inner=SIZE-BORDER*2;
-    const sc=Math.min(inner/img.width,inner/img.height);
+    // fit photo into 2:3 inner area (contain, centered)
+    const sc=Math.min(innerW/img.width,innerH/img.height);
     const sw=img.width*sc,sh=img.height*sc;
-    const dx=BORDER+(inner-sw)/2,dy=BORDER+(inner-sh)/2;
+    const dx=BORDER+(innerW-sw)/2;
+    const dy=innerOffsetY+(innerH-sh)/2;
     ectx.drawImage(img,dx,dy,sw,sh);
     await new Promise(resolve=>{
       ec.toBlob(async blob=>{
