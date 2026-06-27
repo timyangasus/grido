@@ -46,10 +46,12 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .abar{display:flex;align-items:center;padding:8px 16px;gap:10px;flex-shrink:0}
 .pool-bar{display:flex;align-items:center;padding:6px 16px;gap:8px;flex-shrink:0;border-top:.5px solid var(--bd)}
 .pool-count{font-size:12px;color:var(--t2);flex:1}
-.pool-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;padding:2px;background:#1C1C1E;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0;}
-.pool-cell{position:relative;width:100%;aspect-ratio:1/1;background:#2C2C2E;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.pool-cell img{width:100%;height:100%;object-fit:contain;display:block;}
-.pool-cell.used::after{content:"✓";position:absolute;right:6px;bottom:6px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;font-size:15px;line-height:22px;text-align:center;font-weight:700;z-index:2;}
+.pool-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:3px;background:#111;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0;}
+.pool-cell{position:relative;background:#2C2C2E;overflow:hidden;cursor:pointer;}
+.pool-cell::before{content:"";display:block;padding-top:100%;}
+.pool-cell img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;}
+.pool-cell.used .pool-overlay{position:absolute;inset:0;background:rgba(0,229,204,0.3);z-index:1;}
+.pool-cell.used::after{content:"✓";position:absolute;right:6px;bottom:6px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.7);color:#fff;font-size:15px;line-height:22px;text-align:center;font-weight:700;z-index:2;}
 #albumPanel{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
 .iBtn{background:none;border:none;cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:var(--w)}
 .iBtn:active{background:var(--s2)}
@@ -628,26 +630,39 @@ function poolRender(){
   if(clearBtn) clearBtn.classList.toggle('dim', total===0);
   // canvas slots used
   const canvasUsed=st.photos.filter(p=>p!==null).length;
-  const canvasFull=canvasUsed>=9;
   pool.forEach((item,i)=>{
     const cell=document.createElement('div');
     cell.className='pool-cell'+(item.used?' used':'');
     const img=document.createElement('img');
     img.src=item.img.src;
     cell.appendChild(img);
+    const overlay=document.createElement('div');
+    overlay.className='pool-overlay';
+    cell.appendChild(overlay);
     // no delete button — pool is a temp library
-    if(!item.used && !canvasFull){
+    if(!item.used){
       cell.addEventListener('click',()=>{
-        // find first null slot in canvas
+        // ensure layout exists
         if(st.layoutIdx===null){
-          // no layout yet, init default
           st.photos=new Array(6).fill(null);
           st.transforms=st.photos.map(()=>({sc:1,ox:0,oy:0}));
           st.layoutIdx=ALL_LAYOUTS.findIndex(l=>l.n===6);
           st.selCell=null;
         }
-        const slot=st.photos.indexOf(null);
-        if(slot<0){showToast('版型已滿');return;}
+        // find first null slot; if full, expand layout to next size
+        let slot=st.photos.indexOf(null);
+        if(slot<0){
+          // add one more slot if under 9
+          const cur=st.photos.length;
+          if(cur>=9){showToast('最多9張');return;}
+          st.photos=[...st.photos,null];
+          st.transforms=[...st.transforms,{sc:1,ox:0,oy:0}];
+          // find layout matching new count
+          const newN=st.photos.length;
+          const li=ALL_LAYOUTS.findIndex(l=>l.n===newN);
+          if(li>=0) st.layoutIdx=li;
+          slot=st.photos.length-1;
+        }
         st.photos[slot]=item.img;
         st.transforms[slot]={sc:1,ox:0,oy:0};
         item.used=true;
