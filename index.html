@@ -15,6 +15,14 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .page-container{flex:1;overflow:hidden;display:flex;flex-direction:column;position:relative;min-height:0}
 .nav{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 12px;flex-shrink:0}
 .nav-title{font-size:17px;font-weight:700;letter-spacing:-.5px}
+.nav-icon-btn{background:none;border:none;color:var(--t3);cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;-webkit-tap-highlight-color:transparent;}
+.nav-icon-btn.on{color:var(--w);}
+.nav-icon-btn:active{background:var(--s2);}
+.nav-icon-btn svg{width:22px;height:22px;}
+.nav-icons{display:flex;align-items:center;gap:10px;}
+.nav-dropdown{position:absolute;top:100%;left:0;right:0;background:var(--s1);border-bottom:.5px solid var(--bd);z-index:50;display:none;animation:slideDown .18s ease;}
+.nav-dropdown.on{display:block;}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
 .nav-icon{background:none;border:none;color:var(--t1);cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%}
 .nav-icon:active{background:var(--s2)}
 .nav-icon svg{width:22px;height:22px}
@@ -35,18 +43,26 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .panels{flex-shrink:0;background:var(--s1);border-top:.5px solid var(--bd)}
 .panel{display:none}
 .panel.on{display:block}
-.abar{display:flex;align-items:center;padding:10px 20px;gap:10px}
+.abar{display:flex;align-items:center;padding:8px 16px;gap:10px;flex-shrink:0}
+.pool-bar{display:flex;align-items:center;padding:6px 16px;gap:8px;flex-shrink:0;border-top:.5px solid var(--bd)}
+.pool-count{font-size:12px;color:var(--t2);flex:1}
+.pool-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;padding:2px;background:#1C1C1E;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0;}
+.pool-cell{position:relative;width:100%;padding-top:100%;background:#2C2C2E;overflow:hidden;cursor:pointer;}
+.pool-cell img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;display:block;}
+.pool-cell.used::after{content:"✓";position:absolute;bottom:4px;right:5px;color:#fff;font-size:14px;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,0.8);z-index:2;}
+.pool-cell.used::before{content:"";position:absolute;inset:0;background:rgba(0,200,150,0.25);z-index:1;}
+#albumPanel{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
 .iBtn{background:none;border:none;cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:var(--w)}
 .iBtn:active{background:var(--s2)}
 .iBtn.dim{opacity:.2;pointer-events:none}
 .iBtn svg{width:24px;height:24px}
 .acount{flex:1;font-size:11px;color:var(--t1);font-weight:500;text-align:center}
 .layout-bar{display:flex;align-items:center;padding:8px 20px 0;background:var(--s1);}
-.lgrid{display:flex;flex-wrap:nowrap;gap:12px;padding:12px 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.lgrid{display:flex;flex-wrap:wrap;gap:12px;padding:12px 16px;}
 .lthumb{cursor:pointer;opacity:.4;transition:opacity .12s}
 .lthumb.on{opacity:1}
 .lthumb canvas{display:block}
-.lgrid::-webkit-scrollbar{display:none}
+
 .rpanel{padding:12px 16px 10px}
 .rrow{display:flex;gap:8px}
 .rbtn{flex:1;padding:12px 0;border-radius:0;border:1.5px solid var(--bd);background:var(--s2);color:var(--t2);font-size:14px;font-weight:500;cursor:pointer;text-align:center;transition:all .15s}
@@ -74,32 +90,67 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 
 <div id="app">
   <div class="page-container">
-    <div class="nav">
+    <div class="nav" style="position:relative;z-index:51">
       <span class="nav-title">Grido</span>
-      <button class="nav-icon dim" id="btnExport">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M240-80q-33 0-56.5-23.5T160-160v-400q0-33 23.5-56.5T240-640h120v80H240v400h480v-400H600v-80h120q33 0 56.5 23.5T800-560v400q0 33-23.5 56.5T720-80H240Zm200-240v-447l-64 64-56-57 160-160 160 160-56 57-64-64v447h-80Z"/></svg>
-      </button>
-    </div>
-    <div class="preview tap" id="preview">
-      <label id="emptyHint" class="empty-hint" style="cursor:pointer">
-        <input type="file" id="fp" accept="image/*" multiple class="real-file-input">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-480ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h320v80H200v560h560v-320h80v320q0 33-23.5 56.5T760-120H200Zm40-160h480L570-480 450-320l-90-120-120 160Zm440-320v-80h-80v-80h80v-80h80v80h80v80h-80v80h-80Z"/></svg>
-        <p>點此建立拼圖</p>
-      </label>
-      <div id="gcWrap"><canvas id="gc"></canvas><div id="cellOverlays"></div></div>
-    </div>
-    <div class="panels">
-      <div class="panel on" id="panelAlbum">
-        <div class="abar">
-          <button class="iBtn dim" id="btnDel">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-272h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
-          </button>
-          <label class="iBtn" style="cursor:pointer;margin-left:auto">
-            <input type="file" id="fp2" accept="image/*" multiple class="real-file-input">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
-          </label>
+      <div class="nav-icons">
+        <button class="nav-icon-btn" id="btnNavLayout">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        </button>
+        <button class="nav-icon-btn" id="btnNavRatio">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="10" height="18" rx="2"/><rect x="16" y="6" width="5" height="12" rx="1.5"/></svg>
+        </button>
+        <button class="nav-icon dim" id="btnExport">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M240-80q-33 0-56.5-23.5T160-160v-400q0-33 23.5-56.5T240-640h120v80H240v400h480v-400H600v-80h120q33 0 56.5 23.5T800-560v400q0 33-23.5 56.5T720-80H240Zm200-240v-447l-64 64-56-57 160-160 160 160-56 57-64-64v447h-80Z"/></svg>
+        </button>
+      </div>
+      <!-- Dropdown panels inside nav for correct positioning -->
+      <div class="nav-dropdown" id="dropLayout">
+        <div class="layout-bar" style="padding:8px 16px 0">
+          <button class="pill-btn" id="btnResetLayout2" style="margin-left:auto;background:#2C2C2E;color:#fff;border:1.5px solid #48484A;">Reset</button>
+        </div>
+        <div class="lgrid" id="lgridDrop"></div>
+      </div>
+      <div class="nav-dropdown" id="dropRatio">
+        <div class="rpanel">
+          <div class="rrow">
+            <button class="rbtn on" data-r="1:1">1 : 1</button>
+            <button class="rbtn" data-r="2:3">2 : 3</button>
+            <button class="rbtn" data-r="3:4">3 : 4</button>
+            <button class="rbtn" data-r="9:16">9 : 16</button>
+          </div>
         </div>
       </div>
+    </div>
+    <div id="albumPanel">
+      <!-- Top: canvas preview -->
+      <div class="preview tap" id="preview" style="flex:0 0 58%;min-height:0">
+        <label id="emptyHint" class="empty-hint" style="cursor:pointer">
+          <input type="file" id="fp" accept="image/*" multiple class="real-file-input">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-480ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h320v80H200v560h560v-320h80v320q0 33-23.5 56.5T760-120H200Zm40-160h480L570-480 450-320l-90-120-120 160Zm440-320v-80h-80v-80h80v-80h80v80h80v80h-80v80h-80Z"/></svg>
+          <p>點此建立拼圖</p>
+        </label>
+        <div id="gcWrap"><canvas id="gc"></canvas><div id="cellOverlays"></div></div>
+      <!-- Card nav -->
+      <div id="cardNav" style="position:absolute;top:8px;left:8px;right:8px;display:flex;align-items:center;justify-content:space-between;pointer-events:none;z-index:10">
+        <button id="btnPrevCard" style="pointer-events:auto;background:rgba(0,0,0,0.5);border:none;color:#fff;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">‹</button>
+        <button id="btnNextCard" style="pointer-events:auto;background:rgba(0,0,0,0.5);border:none;color:#fff;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">›</button>
+      </div>
+      </div>
+      <!-- Bottom: pool bar + grid -->
+      <div class="pool-bar">
+        <span class="pool-count" id="poolCount"></span>
+        <button class="iBtn dim" id="btnPoolClear">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-272h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
+        </button>
+        <label class="iBtn" style="cursor:pointer">
+          <input type="file" id="fp2" accept="image/*" multiple class="real-file-input">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
+        </label>
+        <button class="pill-btn" id="btnCardDone" style="margin-left:4px;font-size:13px;padding:7px 14px;">完成此頁</button>
+      </div>
+      <div class="pool-grid" id="poolGrid"></div>
+    </div>
+    <div class="panels" style="display:none" id="panelsWrap">
       <div class="panel" id="panelLayout">
         <div class="layout-bar">
           <button class="pill-btn" id="btnResetLayout" style="margin-left:auto;background:#2C2C2E;color:#fff;border:1.5px solid #48484A;">Reset</button>
@@ -141,12 +192,6 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
     <button class="tabbtn on" data-tab="Album">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>相冊
     </button>
-    <button class="tabbtn" data-tab="Layout">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>版型
-    </button>
-    <button class="tabbtn" data-tab="Ratio">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="10" height="18" rx="2"/><rect x="16" y="6" width="5" height="12" rx="1.5"/></svg>比例
-    </button>
     <button class="tabbtn" data-tab="Border">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="6" y="6" width="12" height="12" rx="1"/></svg>白框
     </button>
@@ -186,7 +231,36 @@ const CS={'2:3':{W:2000,H:3000},'1:1':{W:3000,H:3000},'3:4':{W:2250,H:3000},'9:1
 const TS={'2:3':{W:60,H:90},'1:1':{W:72,H:72},'3:4':{W:66,H:88},'9:16':{W:54,H:96}};
 
 // ── State ─────────────────────────────────────────────────────────────────────
-const st={ratio:'1:1',photos:[],layoutIdx:null,selCell:null,repCell:null,transforms:[]};
+function closeDropdowns(){
+  document.getElementById('dropLayout').classList.remove('on');
+  document.getElementById('dropRatio').classList.remove('on');
+  document.getElementById('btnNavLayout').classList.remove('on');
+  document.getElementById('btnNavRatio').classList.remove('on');
+}
+// ── Cards state ──────────────────────────────────────────────────────────────
+function makeCard(){
+  return {
+    photos: new Array(6).fill(null),
+    transforms: new Array(6).fill(null).map(()=>({sc:1,ox:0,oy:0})),
+    layoutIdx: ALL_LAYOUTS.findIndex(l=>l.n===6),
+    done: false
+  };
+}
+const cards = [makeCard()];
+let cardIdx = 0;
+
+// st is a proxy into current card for backward compat
+const st = {
+  ratio: '1:1',
+  selCell: null,
+  repCell: null,
+  get photos(){ return cards[cardIdx].photos; },
+  set photos(v){ cards[cardIdx].photos=v; },
+  get transforms(){ return cards[cardIdx].transforms; },
+  set transforms(v){ cards[cardIdx].transforms=v; },
+  get layoutIdx(){ return cards[cardIdx].layoutIdx; },
+  set layoutIdx(v){ cards[cardIdx].layoutIdx=v; },
+};
 // transforms[i] = {sc, ox, oy} for cell i
 // sc = scale multiplier on top of cover-fit baseline
 // ox, oy = pixel offset in canvas coords
@@ -260,6 +334,51 @@ function swapCells(a, b){
   const tt=st.transforms[a]; st.transforms[a]=st.transforms[b]; st.transforms[b]=tt;
   st.selCell=null;
   render();
+}
+
+// ── Card management ──────────────────────────────────────────────────────────
+function switchCard(idx){
+  st.selCell=null;
+  st.repCell=null;
+  cardIdx=Math.max(0,Math.min(cards.length-1,idx));
+  showCanvas();
+  render();
+  renderCellOverlays();
+  renderCardIndicator();
+  poolSyncUsed();
+  updateAlbumUI();
+}
+
+function renderCardIndicator(){
+  const prev=document.getElementById('btnPrevCard');
+  const next=document.getElementById('btnNextCard');
+  if(prev) prev.style.opacity=cardIdx>0?'1':'0.2';
+  if(next) next.style.opacity='1';
+  // show card count
+  const btn=document.getElementById('btnCardDone');
+  if(btn){
+    const total=cards.length;
+    btn.textContent=cards[cardIdx].done?'取消完成':`完成 (${cardIdx+1}/${total})`;
+  }
+}
+
+function cardToggleDone(){
+  const wasDone=cards[cardIdx].done;
+  cards[cardIdx].done=!wasDone;
+  renderCardIndicator();
+  if(!wasDone){
+    // marked done → create new card if needed and switch
+    if(cardIdx>=cards.length-1) cards.push(makeCard());
+    setTimeout(()=>switchCard(cardIdx+1),50);
+  }
+}
+
+// pool used = any card uses that photo
+function poolSyncUsed(){
+  pool.forEach(item=>{
+    item.used=cards.some(card=>card.photos.includes(item.img));
+  });
+  poolRender();
 }
 
 function renderCellOverlays(){
@@ -367,6 +486,7 @@ function render(){
     ctx.beginPath();ctx.moveTo(xcx+arm,xcy-arm);ctx.lineTo(xcx-arm,xcy+arm);ctx.stroke();
   }
   requestAnimationFrame(renderCellOverlays);
+  poolSyncUsed();
 }
 function renderThumbGrid(){
   const grid=document.getElementById('lgrid');grid.innerHTML='';
@@ -418,22 +538,30 @@ function hideCanvas(){
 function updateAlbumUI(){
   const n=st.photos.filter(p=>p!==null).length;
   const total=st.photos.length;
-  document.getElementById('btnDel').classList.toggle('dim',total===0);
 }
 function switchTab(tab){
-  // Border tab: show panelBorder, hide canvas area
+  // Border tab: show panelBorder, hide other areas
   const borderPanel=document.getElementById('panelBorder');
-  const pageContainer=document.querySelector('.page-container');
+  const albumPanel=document.getElementById('albumPanel');
+  const panelsWrap=document.getElementById('panelsWrap');
+  const nav=document.querySelector('.nav');
   if(tab==='Border'){
     borderPanel.classList.add('on');
-    document.querySelector('.nav').style.display='none';
-    document.querySelector('.preview').style.display='none';
-    document.querySelector('.panels').style.display='none';
+    if(albumPanel) albumPanel.style.display='none';
+    if(panelsWrap) panelsWrap.style.display='none';
+    nav.style.display='none';
+  } else if(tab==='Album'){
+    borderPanel.classList.remove('on');
+    if(albumPanel) albumPanel.style.display='';
+    if(panelsWrap) panelsWrap.style.display='none';
+    nav.style.display='';
+    closeDropdowns();
   } else {
     borderPanel.classList.remove('on');
-    document.querySelector('.nav').style.display='';
-    document.querySelector('.preview').style.display='';
-    document.querySelector('.panels').style.display='';
+    if(albumPanel) albumPanel.style.display='none';
+    if(panelsWrap) panelsWrap.style.display='none';
+    nav.style.display='';
+    closeDropdowns();
   }
   // When entering Layout with no photos, pre-fill 6 empty slots
   if(tab==='Layout' && st.photos.every(p=>p===null) && st.photos.length===0){
@@ -479,6 +607,74 @@ function switchTab(tab){
 // ── Add photos ───────────────────────────────────────────────────────────────
 // iOS Safari bug: setting input.value='' re-fires the change event.
 // Fix: read files + snapshot FIRST, set a lock, defer the value clear.
+// ── Pool (photo library cache) ─────────────────────────────────────────────
+const pool = []; // {img, usedInCanvas: false}
+
+function poolRender(){
+  const grid=document.getElementById('poolGrid');
+  const countEl=document.getElementById('poolCount');
+  if(!grid)return;
+  grid.innerHTML='';
+  const total=pool.length;
+  const used=pool.filter(p=>p.used).length;
+  const available=total-used;
+  if(countEl) countEl.textContent=total>0?(total+'張，可用'+available+'張'):'';
+  // clear btn
+  const clearBtn=document.getElementById('btnPoolClear');
+  if(clearBtn) clearBtn.classList.toggle('dim', total===0);
+  // canvas slots used
+  const canvasUsed=st.photos.filter(p=>p!==null).length;
+  const canvasFull=canvasUsed>=9;
+  pool.forEach((item,i)=>{
+    const cell=document.createElement('div');
+    cell.className='pool-cell'+(item.used?' used':'');
+    const img=document.createElement('img');
+    img.src=item.img.src;
+    cell.appendChild(img);
+    // no delete button — pool is a temp library
+    if(!item.used && !canvasFull){
+      cell.addEventListener('click',()=>{
+        // find first null slot in canvas
+        if(st.layoutIdx===null){
+          // no layout yet, init default
+          st.photos=new Array(6).fill(null);
+          st.transforms=st.photos.map(()=>({sc:1,ox:0,oy:0}));
+          st.layoutIdx=ALL_LAYOUTS.findIndex(l=>l.n===6);
+          st.selCell=null;
+        }
+        const slot=st.photos.indexOf(null);
+        if(slot<0){showToast('版型已滿');return;}
+        st.photos[slot]=item.img;
+        st.transforms[slot]={sc:1,ox:0,oy:0};
+        item.used=true;
+        showCanvas();render();renderCellOverlays();updateAlbumUI();
+        poolRender();
+      });
+    }
+    grid.appendChild(cell);
+  });
+}
+
+function poolAddImgs(imgs, files){
+  imgs.forEach((img,i)=>{
+    const file=files?files[i]:null;
+    const key=file?(file.name+'|'+file.size):null;
+    // skip duplicates
+    if(key && pool.some(p=>p.key===key)) return;
+    pool.push({img, used:false, key});
+  });
+  poolRender();
+}
+
+// When canvas cell is deleted → return photo to pool
+function poolReturn(img){
+  const item=pool.find(p=>p.img===img);
+  if(item) item.used=false;
+  poolRender();
+}
+
+// poolSyncUsed defined above in card management
+
 let _addLock=false;
 function setupAddInput(id){
   const inp=document.getElementById(id);
@@ -492,27 +688,27 @@ function setupAddInput(id){
     _addLock=true;
     const self=this;
     setTimeout(()=>{ try{self.value='';}catch(e){} _addLock=false; },100);
-    // Album/Ratio tab: max 9; Layout tab: limited to layout size
     const currentTabNow=document.querySelector('.tabbtn.on')?.dataset.tab;
-    const layoutMax=(currentTabNow==='Album'||currentTabNow==='Ratio')?9:(st.layoutIdx!==null?ALL_LAYOUTS[st.layoutIdx].n:9);
-    const slots=layoutMax-before.length;
-    if(slots<=0){showToast(currentTabNow==='Album'?'最多 9 張':'版型已滿');return;}
-    Promise.all(files.slice(0,slots).map(loadImg)).then(imgs=>{
-      const merged=[...before,...imgs];
-      // In Album tab: reset layout to match photo count
-      // In Layout tab: keep current layout and pad with nulls
-      const currentTab=document.querySelector('.tabbtn.on')?.dataset.tab;
-      if(currentTab==='Album'||currentTab==='Ratio'){
-        applyPhotos(merged);
-      } else {
-        const target=st.layoutIdx!==null?ALL_LAYOUTS[st.layoutIdx].n:merged.length;
+    if(currentTabNow==='Album'){
+      // Album tab: load all selected into pool
+      const filesCopy=files.slice();
+      Promise.all(files.map(loadImg)).then(imgs=>{
+        poolAddImgs(imgs, filesCopy);
+      }).catch(()=>{});
+    } else {
+      // Layout/Ratio tab: fill canvas slots directly
+      const layoutMax=st.layoutIdx!==null?ALL_LAYOUTS[st.layoutIdx].n:9;
+      const slots=layoutMax-before.length;
+      if(slots<=0){showToast('版型已滿');return;}
+      Promise.all(files.slice(0,slots).map(loadImg)).then(imgs=>{
+        const target=st.layoutIdx!==null?ALL_LAYOUTS[st.layoutIdx].n:imgs.length;
+        const merged=[...before,...imgs];
         const padded=[...merged,...new Array(Math.max(0,target-merged.length)).fill(null)];
-        const newPhotos=padded.slice(0,target);
-        st.photos=newPhotos;
-        st.transforms=newPhotos.map((_,i)=>st.transforms[i]||{sc:1,ox:0,oy:0});
-      }
-      showCanvas();render();renderThumbGrid();updateAlbumUI();
-    }).catch(()=>{});
+        st.photos=padded.slice(0,target);
+        st.transforms=st.photos.map((_,i)=>st.transforms[i]||{sc:1,ox:0,oy:0});
+        showCanvas();render();renderThumbGrid();updateAlbumUI();
+      }).catch(()=>{});
+    }
   });
 }
 setupAddInput('fp');
@@ -520,6 +716,106 @@ setupAddInput('fp2');
 
 // ── Tab bar ───────────────────────────────────────────────────────────────────
 document.querySelectorAll('.tabbtn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+
+// Card navigation
+document.getElementById('btnPrevCard').addEventListener('click',()=>switchCard(cardIdx-1));
+document.getElementById('btnNextCard').addEventListener('click',()=>{
+  if(cardIdx===cards.length-1) cards.push(makeCard());
+  switchCard(cardIdx+1);
+});
+
+// Done toggle: click the checkmark area (top-right of canvas)
+// We'll add a done button to pool-bar
+
+
+// nav dropdown: Layout and Ratio
+document.getElementById('btnNavLayout').addEventListener('click',()=>{
+  const drop=document.getElementById('dropLayout');
+  const isOn=drop.classList.contains('on');
+  closeDropdowns();
+  if(!isOn){
+    drop.classList.add('on');
+    document.getElementById('btnNavLayout').classList.add('on');
+    renderThumbGridDrop();
+  }
+});
+document.getElementById('btnNavRatio').addEventListener('click',()=>{
+  const drop=document.getElementById('dropRatio');
+  const isOn=drop.classList.contains('on');
+  closeDropdowns();
+  if(!isOn){
+    drop.classList.add('on');
+    document.getElementById('btnNavRatio').classList.add('on');
+  }
+});
+// close dropdowns when tapping outside
+document.getElementById('preview').addEventListener('touchstart',()=>closeDropdowns(),{passive:true});
+document.getElementById('preview').addEventListener('click',()=>closeDropdowns());
+
+// Reset button in dropdown
+document.getElementById('btnResetLayout2').addEventListener('click',()=>{
+  closeDropdowns();
+  document.getElementById('btnResetLayout').click();
+});
+
+// Ratio buttons in dropdown (mirror the original)
+document.querySelectorAll('#dropRatio .rbtn').forEach(b=>b.addEventListener('click',()=>{
+  st.ratio=b.dataset.r;
+  // sync all rbtn on state
+  document.querySelectorAll('.rbtn').forEach(x=>x.classList.toggle('on',x.dataset.r===st.ratio));
+  if(st.photos.length){renderThumbGridDrop();render();}
+  closeDropdowns();
+}));
+
+// renderThumbGrid for dropdown
+function renderThumbGridDrop(){
+  const grid=document.getElementById('lgridDrop');
+  if(!grid)return;
+  grid.innerHTML='';
+  ALL_LAYOUTS.forEach((layout,idx)=>{
+    const{W,H}=TS[st.ratio];
+    const wrap=document.createElement('div');
+    const isOn=idx===st.layoutIdx;
+    wrap.className='lthumb'+(isOn?' on':'');
+    const tc=document.createElement('canvas');tc.width=W;tc.height=H;tc.style.width=W+'px';tc.style.height=H+'px';
+    const tctx=tc.getContext('2d');
+    tctx.globalAlpha=isOn?0.85:0.5;
+    tctx.strokeStyle='#ffffff';
+    drawBorders(tctx,layout.f,W,H,1);
+    tctx.globalAlpha=1;
+    wrap.appendChild(tc);
+    wrap.addEventListener('click',()=>{
+      const n=layout.n;
+      const realPhotos=st.photos.filter(p=>p!==null);
+      let newPhotos;
+      if(realPhotos.length<=n){
+        newPhotos=[...realPhotos,...new Array(n-realPhotos.length).fill(null)];
+      } else {
+        newPhotos=realPhotos.slice(0,n);
+      }
+      const oldTransforms=st.transforms.filter((_,i)=>st.photos[i]!==null);
+      st.photos=newPhotos;
+      st.transforms=newPhotos.map((_,i)=>oldTransforms[i]||{sc:1,ox:0,oy:0});
+      st.layoutIdx=idx;st.selCell=null;
+      showCanvas();render();renderThumbGrid();renderThumbGridDrop();updateAlbumUI();
+      closeDropdowns();
+    });
+    grid.appendChild(wrap);
+  });
+}
+
+document.getElementById('btnPoolClear').addEventListener('click',()=>{
+  if(!pool.length)return;
+  // clear canvas photos that came from pool
+  st.photos=st.photos.map(p=>{
+    if(p && pool.find(item=>item.img===p)) return null;
+    return p;
+  });
+  pool.length=0;
+  render();renderCellOverlays();updateAlbumUI();poolRender();
+  const hasReal=st.photos.some(p=>p!==null);
+  if(!hasReal) hideCanvas();
+});
 
 document.getElementById('btnResetLayout').addEventListener('click',()=>{
   applyPhotos([]);
@@ -539,10 +835,7 @@ document.getElementById('btnResetLayout').addEventListener('click',()=>{
 });
 
 // ── Delete all ────────────────────────────────────────────────────────────────
-document.getElementById('btnDel').addEventListener('click',()=>{
-  applyPhotos([]);hideCanvas();updateAlbumUI();
-  document.getElementById('lgrid').innerHTML='';
-});
+
 
 // ── Go to layout tab ──────────────────────────────────────────────────────────
 
@@ -642,10 +935,12 @@ document.getElementById('btnDel').addEventListener('click',()=>{
         const xr=Math.round(10/scale),xpad=Math.round(4/scale);
         const xcx=r.x+r.w-xr-xpad,xcy=r.y+xr+xpad;
         if(Math.hypot(p.x-xcx,p.y-xcy)<=xr*1.8){
+          const delImg=st.photos[st.selCell];
           const np=[...st.photos];np.splice(st.selCell,1);
           const nt=[...st.transforms];nt.splice(st.selCell,1);
           st.transforms=nt;
           applyPhotos(np);
+          if(delImg) poolReturn(delImg);
           if(!st.photos.length){hideCanvas();document.getElementById('lgrid').innerHTML='';}
           else{render();renderThumbGrid();}
           updateAlbumUI();gesture=null;return;
@@ -792,10 +1087,12 @@ document.getElementById('btnDel').addEventListener('click',()=>{
       const xr=Math.round(10/scale),xpad=Math.round(4/scale);
       const xcx=r.x+r.w-xr-xpad,xcy=r.y+xr+xpad;
       if(Math.hypot(p.x-xcx,p.y-xcy)<=xr*1.5){
+        const delImg2=st.photos[st.selCell];
         const np=[...st.photos];np.splice(st.selCell,1);
         const nt=[...st.transforms];nt.splice(st.selCell,1);
         st.transforms=nt;
         applyPhotos(np);
+        if(delImg2) poolReturn(delImg2);
         if(!st.photos.length){hideCanvas();document.getElementById('lgrid').innerHTML='';}
         else{render();renderThumbGrid();}
         updateAlbumUI();return;
@@ -849,45 +1146,79 @@ document.querySelectorAll('.rbtn').forEach(b=>b.addEventListener('click',()=>{
 }));
 
 // ── Export ────────────────────────────────────────────────────────────────────
-document.getElementById('btnExport').addEventListener('click',()=>{
-  if(st.layoutIdx===null)return;
-  const layout=ALL_LAYOUTS[st.layoutIdx];
-  const{W,H}=CS[st.ratio];
-  const ec=document.createElement('canvas');ec.width=W;ec.height=H;
-  const ectx=ec.getContext('2d');
-  layout.f.forEach((f,i)=>{
-    const r=toRect(f,W,H),img=st.photos[i];
-    if(img){
-      const t=st.transforms[i]||{sc:1,ox:0,oy:0};
-      const base=Math.max(r.w/img.width,r.h/img.height);
-      const sc=base*t.sc;
-      const sw=img.width*sc,sh=img.height*sc;
-      const dx=r.x+(r.w-sw)/2+t.ox;
-      const dy=r.y+(r.h-sh)/2+t.oy;
-      ectx.save();ectx.beginPath();ectx.rect(r.x,r.y,r.w,r.h);ectx.clip();
-      ectx.drawImage(img,dx,dy,sw,sh);ectx.restore();
-    }else{ectx.fillStyle='#2C2C2E';ectx.fillRect(r.x,r.y,r.w,r.h);}
-  });
-  ectx.strokeStyle='#ffffff';drawBorders(ectx,layout.f,W,H,6);
-  ec.toBlob(async blob=>{
-    const file=new File([blob],'grido_'+Date.now()+'.jpg',{type:'image/jpeg'});
-    if(navigator.canShare&&navigator.canShare({files:[file]})){
-      try{
-        await navigator.share({files:[file],title:'Grido'});
-      }catch(e){
-        if(e.name!=='AbortError') showToast('分享失敗');
-      }
+document.getElementById('btnExport').addEventListener('click',async()=>{
+  const doneCards=cards.filter(c=>c.done&&c.photos.some(p=>p!==null));
+  if(!doneCards.length){showToast('沒有完成的拼圖');return;}
+  showToast('處理中...');
+  const filesToExport=[];
+  for(let ci=0;ci<doneCards.length;ci++){
+    const card=doneCards[ci];
+    const layout=ALL_LAYOUTS[card.layoutIdx];
+    const{W,H}=CS[st.ratio];
+    const ec=document.createElement('canvas');ec.width=W;ec.height=H;
+    const ectx=ec.getContext('2d');
+    layout.f.forEach((f,i)=>{
+      const r=toRect(f,W,H),img=card.photos[i];
+      if(img){
+        const t=card.transforms[i]||{sc:1,ox:0,oy:0};
+        const base=Math.max(r.w/img.width,r.h/img.height);
+        const sc=base*t.sc;
+        const sw=img.width*sc,sh=img.height*sc;
+        const dx=r.x+(r.w-sw)/2+t.ox;
+        const dy=r.y+(r.h-sh)/2+t.oy;
+        ectx.save();ectx.beginPath();ectx.rect(r.x,r.y,r.w,r.h);ectx.clip();
+        ectx.drawImage(img,dx,dy,sw,sh);ectx.restore();
+      }else{ectx.fillStyle='#2C2C2E';ectx.fillRect(r.x,r.y,r.w,r.h);}
+    });
+    ectx.strokeStyle='#ffffff';drawBorders(ectx,layout.f,W,H,6);
+    const blob=await new Promise(res=>ec.toBlob(res,'image/jpeg',0.95));
+    if(blob) filesToExport.push(new File([blob],'grido_'+(ci+1)+'.jpg',{type:'image/jpeg'}));
+  }
+  try{
+    if(navigator.canShare&&navigator.canShare({files:filesToExport})){
+      await navigator.share({files:filesToExport,title:'Grido'});
     } else {
-      // fallback: download
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a');a.href=url;a.download=file.name;a.click();
-      setTimeout(()=>URL.revokeObjectURL(url),3000);
-      showToast('已儲存');
+      filesToExport.forEach(f=>{
+        const url=URL.createObjectURL(f);
+        const a=document.createElement('a');a.href=url;a.download=f.name;a.click();
+        setTimeout(()=>URL.revokeObjectURL(url),3000);
+      });
+      showToast('已下載');
     }
-  },'image/jpeg',0.95);
+  }catch(e){if(e.name!=='AbortError')showToast('輸出失敗');}
 });
 
 window.addEventListener('resize',()=>{if(st.layoutIdx!==null)render();});
+
+// Swipe on preview area to switch cards
+(function(){
+  const preview=document.getElementById('preview');
+  let swipeStartX=null,swipeStartY=null;
+  preview.addEventListener('touchstart',e=>{
+    if(e.touches.length!==1)return;
+    swipeStartX=e.touches[0].clientX;
+    swipeStartY=e.touches[0].clientY;
+  },{passive:true});
+  preview.addEventListener('touchend',e=>{
+    if(swipeStartX===null)return;
+    const dx=e.changedTouches[0].clientX-swipeStartX;
+    const dy=e.changedTouches[0].clientY-swipeStartY;
+    swipeStartX=null;swipeStartY=null;
+    // only horizontal swipe > 60px, not too vertical
+    if(Math.abs(dx)<60||Math.abs(dy)>Math.abs(dx)*0.8)return;
+    if(dx<0){
+      // swipe left → next card
+      if(cardIdx===cards.length-1) cards.push(makeCard());
+      switchCard(cardIdx+1);
+    } else {
+      // swipe right → prev card
+      if(cardIdx>0) switchCard(cardIdx-1);
+    }
+  },{passive:true});
+})();
+
+// init card UI
+showCanvas();render();renderCardIndicator();
 
 // ── White Border Feature ──────────────────────────────────────────────────────
 const bst={photos:[],selected:null}; // border state
