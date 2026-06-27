@@ -240,9 +240,9 @@ function closeDropdowns(){
 // ── Cards state ──────────────────────────────────────────────────────────────
 function makeCard(){
   return {
-    photos: new Array(6).fill(null),
-    transforms: new Array(6).fill(null).map(()=>({sc:1,ox:0,oy:0})),
-    layoutIdx: ALL_LAYOUTS.findIndex(l=>l.n===6),
+    photos: new Array(2).fill(null),
+    transforms: new Array(2).fill(null).map(()=>({sc:1,ox:0,oy:0})),
+    layoutIdx: ALL_LAYOUTS.findIndex(l=>l.n===2),
     done: false
   };
 }
