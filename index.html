@@ -339,11 +339,10 @@ function switchCard(idx){
   st.repCell=null;
   cardIdx=Math.max(0,Math.min(cards.length-1,idx));
   showCanvas();
-  render();
-  renderCellOverlays();
   renderCardIndicator();
-  poolSyncUsed();
+  poolSyncUsedFast();
   updateAlbumUI();
+  requestAnimationFrame(()=>{render();renderCellOverlays();});
 }
 
 function renderCardIndicator(){
@@ -375,6 +374,17 @@ function cardToggleDone(){
 }
 
 // pool used = any card uses that photo
+function poolSyncUsedFast(){
+  // update used state and CSS class only, no DOM rebuild
+  const grid=document.getElementById('poolGrid');
+  if(!grid)return;
+  const cells=grid.querySelectorAll('.pool-cell');
+  pool.forEach((item,i)=>{
+    item.used=cards.some(card=>card.photos.includes(item.img));
+    if(cells[i]) cells[i].classList.toggle('used',item.used);
+  });
+}
+
 function poolSyncUsed(){
   pool.forEach(item=>{
     item.used=cards.some(card=>card.photos.includes(item.img));
@@ -669,13 +679,12 @@ function poolRender(){
 }
 
 function fixPoolCells(){
-  // Force square cells using JS - iOS Safari doesn't reliably support aspect-ratio in grid
-  const grid=document.getElementById('poolGrid');
-  if(!grid)return;
-  const cellW=grid.querySelector('.pool-cell')?.offsetWidth||0;
-  if(!cellW)return;
-  grid.querySelectorAll('.pool-cell').forEach(c=>{
-    c.style.height=cellW+'px';
+  requestAnimationFrame(()=>{
+    const grid=document.getElementById('poolGrid');
+    if(!grid)return;
+    const cellW=grid.querySelector('.pool-cell')?.offsetWidth||0;
+    if(!cellW)return;
+    grid.querySelectorAll('.pool-cell').forEach(c=>{c.style.height=cellW+'px';});
   });
 }
 
