@@ -957,7 +957,18 @@ document.getElementById('btnPoolClear').addEventListener('click',()=>{
     btn.addEventListener('click',()=>{
       document.body.removeChild(sheet);
       if(opt.action==='cancel') return;
-      if(opt.action==='canvas'||opt.action==='all'){
+      if(opt.action==='all'){
+        // full reset: cards, pool, back to initial state
+        cards.length=0;
+        cards.push(makeCard());
+        cardIdx=0;
+        pool.length=0;
+        st.selCell=null;st.repCell=null;
+        hideCanvas();
+        poolRender();
+        renderCardIndicator();
+        updateAlbumUI();
+      } else if(opt.action==='canvas'){
         cards[cardIdx].photos.forEach((p,i)=>{
           if(p){
             const item=pool.find(it=>it.img===p);
@@ -968,8 +979,7 @@ document.getElementById('btnPoolClear').addEventListener('click',()=>{
         cards[cardIdx].done=false;
         render();renderCellOverlays();updateAlbumUI();renderCardIndicator();
         if(!cards[cardIdx].photos.some(p=>p!==null)) hideCanvas();
-      }
-      if(opt.action==='pool'||opt.action==='all'){
+      } else if(opt.action==='pool'){
         pool.length=0;
         poolRender();
       }
