@@ -141,9 +141,10 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
     </button>
   </div>
 </div>
-<input type="file" id="fp" accept="image/*" multiple style="display:none">
-<input type="file" id="fb" accept="image/*" multiple style="display:none">
-<input type="file" id="fr" accept="image/*" style="display:none">
+<input type="file" id="fp" accept="image/*" multiple style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px;top:-9999px">
+<input type="file" id="fb" accept="image/*" multiple style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px;top:-9999px">
+<input type="file" id="fr" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px;top:-9999px">
+<label id="cellFileLabel" for="fr" style="position:fixed;display:none;z-index:999;cursor:pointer"></label>
 
 <script>
 // ── Layouts ───────────────────────────────────────────────────────────────────
@@ -233,6 +234,31 @@ function swapCells(a, b){
   render();
 }
 
+function renderCellOverlays(){
+  const overlays=document.getElementById('cellOverlays');
+  if(!overlays||st.layoutIdx===null)return;
+  const layout=ALL_LAYOUTS[st.layoutIdx];
+  overlays.innerHTML='';
+  const cvRect=cvs.getBoundingClientRect();
+  const previewEl=document.getElementById('preview');
+  const previewRect=previewEl.getBoundingClientRect();
+  const scaleX=cvRect.width/cvs.width;
+  const scaleY=cvRect.height/cvs.height;
+  layout.f.forEach((f,i)=>{
+    if(st.photos[i]!==null)return;
+    const lbl=document.createElement('label');
+    lbl.htmlFor='fr';
+    lbl.style.cssText='position:absolute;display:block;cursor:pointer;z-index:3;';
+    lbl.style.left=(cvRect.left-previewRect.left+f.x*cvs.width*scaleX)+'px';
+    lbl.style.top=(cvRect.top-previewRect.top+f.y*cvs.height*scaleY)+'px';
+    lbl.style.width=(f.w*cvs.width*scaleX)+'px';
+    lbl.style.height=(f.h*cvs.height*scaleY)+'px';
+    lbl.addEventListener('pointerdown',()=>{st.repCell=i;});
+    overlays.appendChild(lbl);
+  });
+  overlays.style.pointerEvents=overlays.children.length>0?'auto':'none';
+}
+
 function render(){
   if(st.layoutIdx===null)return;
   const layout=ALL_LAYOUTS[st.layoutIdx];
@@ -282,6 +308,7 @@ function render(){
     ctx.beginPath();ctx.moveTo(xcx-arm,xcy-arm);ctx.lineTo(xcx+arm,xcy+arm);ctx.stroke();
     ctx.beginPath();ctx.moveTo(xcx+arm,xcy-arm);ctx.lineTo(xcx-arm,xcy+arm);ctx.stroke();
   }
+  requestAnimationFrame(renderCellOverlays);
 }
 function renderThumbGrid(){
   const grid=document.getElementById('lgrid');grid.innerHTML='';
@@ -392,12 +419,18 @@ function setupAddInput(){
     if(slots<=0){showToast('版型已滿');return;}
     Promise.all(files.slice(0,slots).map(loadImg)).then(imgs=>{
       const merged=[...before,...imgs];
-      // fill to layout size with nulls, keep layout fixed
-      const target=st.layoutIdx!==null?ALL_LAYOUTS[st.layoutIdx].n:merged.length;
-      const padded=[...merged,...new Array(Math.max(0,target-merged.length)).fill(null)];
-      const newPhotos=padded.slice(0,target);
-      st.photos=newPhotos;
-      st.transforms=newPhotos.map((_,i)=>st.transforms[i]||{sc:1,ox:0,oy:0});
+      // In Album tab: reset layout to match photo count
+      // In Layout tab: keep current layout and pad with nulls
+      const currentTab=document.querySelector('.tabbtn.on')?.dataset.tab;
+      if(currentTab==='Album'||currentTab==='Ratio'){
+        applyPhotos(merged);
+      } else {
+        const target=st.layoutIdx!==null?ALL_LAYOUTS[st.layoutIdx].n:merged.length;
+        const padded=[...merged,...new Array(Math.max(0,target-merged.length)).fill(null)];
+        const newPhotos=padded.slice(0,target);
+        st.photos=newPhotos;
+        st.transforms=newPhotos.map((_,i)=>st.transforms[i]||{sc:1,ox:0,oy:0});
+      }
       showCanvas();render();renderThumbGrid();updateAlbumUI();
     }).catch(()=>{});
   });
@@ -525,7 +558,19 @@ document.getElementById('btnCheck').addEventListener('click',()=>{
       }
       const cell=hitCell(p.x,p.y);
       if(cell===null){st.selCell=null;render();gesture=null;return;}
-      if(st.photos[cell]===null){st.repCell=cell;document.getElementById('fr').click();gesture=null;return;}
+      if(st.photos[cell]===null){
+        st.repCell=cell;
+        const cvRect=cvs.getBoundingClientRect();
+        const f=ALL_LAYOUTS[st.layoutIdx].f[cell];
+        const scale=cvRect.width/cvs.width;
+        const lbl=document.getElementById('cellFileLabel');
+        lbl.style.display='block';
+        lbl.style.left=(cvRect.left+f.x*cvs.width*scale)+'px';
+        lbl.style.top=(cvRect.top+f.y*cvs.height*scale)+'px';
+        lbl.style.width=(f.w*cvs.width*scale)+'px';
+        lbl.style.height=(f.h*cvs.height*scale)+'px';
+        gesture=null;return;
+      }
 
       // start long press timer for drag-to-swap
       _longPressTimer=setTimeout(()=>{
@@ -667,8 +712,31 @@ document.getElementById('btnCheck').addEventListener('click',()=>{
     }
     const cell=hitCell(p.x,p.y);
     if(cell===null){st.selCell=null;render();return;}
-    if(st.photos[cell]===null){st.repCell=cell;document.getElementById('fr').click();return;}
-    if(st.selCell===cell){st.repCell=cell;document.getElementById('fr').click();}
+    if(st.photos[cell]===null){
+      st.repCell=cell;
+      const cvRect=cvs.getBoundingClientRect();
+      const f=ALL_LAYOUTS[st.layoutIdx].f[cell];
+      const scale=cvRect.width/cvs.width;
+      const lbl=document.getElementById('cellFileLabel');
+      lbl.style.display='block';
+      lbl.style.left=(cvRect.left+f.x*cvs.width*scale)+'px';
+      lbl.style.top=(cvRect.top+f.y*cvs.height*scale)+'px';
+      lbl.style.width=(f.w*cvs.width*scale)+'px';
+      lbl.style.height=(f.h*cvs.height*scale)+'px';
+      return;
+    }
+    if(st.selCell===cell){
+      st.repCell=cell;
+      const cvRect2=cvs.getBoundingClientRect();
+      const f2=ALL_LAYOUTS[st.layoutIdx].f[cell];
+      const scale2=cvRect2.width/cvs.width;
+      const lbl2=document.getElementById('cellFileLabel');
+      lbl2.style.display='block';
+      lbl2.style.left=(cvRect2.left+f2.x*cvs.width*scale2)+'px';
+      lbl2.style.top=(cvRect2.top+f2.y*cvs.height*scale2)+'px';
+      lbl2.style.width=(f2.w*cvs.width*scale2)+'px';
+      lbl2.style.height=(f2.h*cvs.height*scale2)+'px';
+    }
     else{st.selCell=cell;render();}
   });
 
@@ -681,6 +749,7 @@ document.getElementById('btnCheck').addEventListener('click',()=>{
 // ── Replace single cell ───────────────────────────────────────────────────────
 document.getElementById('fr').addEventListener('change',function(){
   const f=this.files[0];this.value='';
+  document.getElementById('cellFileLabel').style.display='none';
   if(!f||st.repCell===null)return;
   const cell=st.repCell;st.repCell=null;
   loadImg(f).then(img=>{
