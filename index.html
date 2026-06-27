@@ -66,6 +66,9 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .border-cell img{width:100%;height:100%;object-fit:contain;display:block}
 .border-cell .del-btn{position:absolute;top:4px;right:4px;width:22px;height:22px;background:rgba(0,0,0,0.7);border-radius:50%;border:none;color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:1}
 .border-bar{flex-shrink:0;display:flex;align-items:center;padding:10px 20px;gap:10px;background:var(--s1);border-top:.5px solid var(--bd)}
+.pill-btn{background:#000;color:#fff;border:none;border-radius:999px;padding:9px 22px;font-size:14px;font-weight:500;cursor:pointer;margin-left:auto;-webkit-tap-highlight-color:transparent;}
+.pill-btn.dim{opacity:.25;pointer-events:none;}
+.pill-btn:active{opacity:.7}
 </style>
 
 <div id="app">
@@ -87,16 +90,13 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
     <div class="panels">
       <div class="panel on" id="panelAlbum">
         <div class="abar">
-          <label class="iBtn" style="cursor:pointer">
-            <input type="file" id="fp2" accept="image/*" multiple class="real-file-input">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
-          </label>
           <button class="iBtn dim" id="btnDel">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-272h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
           </button>
-          <button class="iBtn dim" id="btnCheck" style="margin-left:auto">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg>
-          </button>
+          <label class="iBtn" style="cursor:pointer;margin-left:auto">
+            <input type="file" id="fp2" accept="image/*" multiple class="real-file-input">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
+          </label>
         </div>
       </div>
       <div class="panel" id="panelLayout">
@@ -128,9 +128,7 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
         <button class="iBtn" id="btnDelBorder">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-272h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
         </button>
-        <button class="iBtn" id="btnExportBorder" style="margin-left:auto">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg>
-        </button>
+        <button class="pill-btn" id="btnExportBorder">完成</button>
       </div>
     </div>
     <div class="toast" id="toast"></div>
@@ -260,43 +258,59 @@ function swapCells(a, b){
 }
 
 function renderCellOverlays(){
-  const overlays=document.getElementById('cellOverlays');
-  if(!overlays||st.layoutIdx===null){if(overlays)overlays.innerHTML='';return;}
-  overlays.innerHTML='';
-  const activeTab=document.querySelector('.tabbtn.on')?.dataset.tab;
-  if(activeTab==='Album'){overlays.style.pointerEvents='none';return;}
-  const layout=ALL_LAYOUTS[st.layoutIdx];
-  layout.f.forEach((f,i)=>{
-    if(st.photos[i]!==null)return;
-    const lbl=document.createElement('label');
-    lbl.className='cell-file-label';
-    lbl.style.left=(f.x*100)+'%';
-    lbl.style.top=(f.y*100)+'%';
-    lbl.style.width=(f.w*100)+'%';
-    lbl.style.height=(f.h*100)+'%';
-    const inp=document.createElement('input');
-    inp.type='file';inp.accept='image/*';inp.multiple=true;
-    inp.addEventListener('change',async function(){
-      const files=Array.from(this.files);
-      if(!files.length)return;
-      const n=layout.n;
-      const nullCells=[];
-      for(let k=0;k<n;k++){
-        const idx=(i+k)%n;
-        if(st.photos[idx]===null)nullCells.push(idx);
+  const overlays = document.getElementById('cellOverlays');
+  if (!overlays || st.layoutIdx === null) {
+    if (overlays) overlays.innerHTML = '';
+    return;
+  }
+  overlays.innerHTML = '';
+  const activeTab = document.querySelector('.tabbtn.on')?.dataset.tab;
+  if (activeTab === 'Border') {
+    overlays.style.pointerEvents = 'none';
+    return;
+  }
+  const layout = ALL_LAYOUTS[st.layoutIdx];
+  layout.f.forEach((f, i) => {
+    if (st.photos[i] !== null) return;
+    const lbl = document.createElement('label');
+    lbl.className = 'cell-file-label';
+    lbl.style.left = (f.x * 100) + '%';
+    lbl.style.top = (f.y * 100) + '%';
+    lbl.style.width = (f.w * 100) + '%';
+    lbl.style.height = (f.h * 100) + '%';
+    const inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = 'image/*';
+    inp.multiple = true;
+    inp.addEventListener('change', async function () {
+      const files = Array.from(this.files);
+      if (!files.length) return;
+      const n = layout.n;
+      const nullCells = [];
+      for (let k = 0; k < n; k++) {
+        const idx = (i + k) % n;
+        if (st.photos[idx] === null) {
+          nullCells.push(idx);
+        }
       }
-      const imgs=await Promise.all(files.slice(0,nullCells.length).map(loadImg));
-      imgs.forEach((img,idx)=>{
-        st.photos[nullCells[idx]]=img;
-        st.transforms[nullCells[idx]]={sc:1,ox:0,oy:0};
+      const imgs = await Promise.all(
+        files.slice(0, nullCells.length).map(loadImg)
+      );
+      imgs.forEach((img, idx) => {
+        st.photos[nullCells[idx]] = img;
+        st.transforms[nullCells[idx]] = { sc: 1, ox: 0, oy: 0 };
       });
-      st.repCell=null;
-      showCanvas();render();renderThumbGrid();updateAlbumUI();
+      st.repCell = null;
+      showCanvas();
+      render();
+      renderThumbGrid();
+      updateAlbumUI();
+      this.value = '';
     });
     lbl.appendChild(inp);
     overlays.appendChild(lbl);
   });
-  overlays.style.pointerEvents=overlays.children.length>0?'auto':'none';
+  overlays.style.pointerEvents = overlays.children.length > 0 ? 'auto' : 'none';
 }
 function render(){
   if(st.layoutIdx===null)return;
@@ -400,7 +414,6 @@ function updateAlbumUI(){
   const n=st.photos.filter(p=>p!==null).length;
   const total=st.photos.length;
   document.getElementById('btnDel').classList.toggle('dim',total===0);
-  document.getElementById('btnCheck').classList.toggle('dim',total===0);
 }
 function switchTab(tab){
   // Border tab: show panelBorder, hide canvas area
@@ -510,10 +523,7 @@ document.getElementById('btnDel').addEventListener('click',()=>{
 });
 
 // ── Go to layout tab ──────────────────────────────────────────────────────────
-document.getElementById('btnCheck').addEventListener('click',()=>{
-  if(!st.photos.length)return;
-  renderThumbGrid();switchTab('Layout');
-});
+
 
 // ── Canvas gestures (tap + pinch/drag when cell selected) ────────────────────
 (function(){
