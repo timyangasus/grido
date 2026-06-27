@@ -134,7 +134,7 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
       </div>
       <!-- Bottom: pool bar (arrows + delete + add + done) -->
       <div class="pool-bar" style="justify-content:space-between;">
-        <button id="btnPrevCard" class="iBtn" style="font-size:24px;width:40px;height:40px;">‹</button>
+        <button id="btnPrevCard" class="iBtn" style="font-size:24px;width:40px;height:40px;background:rgba(0,0,0,0.6);border-radius:50%;color:#fff;">‹</button>
         <button class="iBtn dim" id="btnPoolClear">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-272h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
         </button>
@@ -143,7 +143,7 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
           <input type="file" id="fp2" accept="image/*" multiple class="real-file-input">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
         </label>
-        <button id="btnNextCard" class="iBtn" style="font-size:24px;width:40px;height:40px;">›</button>
+        <button id="btnNextCard" class="iBtn" style="font-size:24px;width:40px;height:40px;background:rgba(0,0,0,0.6);border-radius:50%;color:#fff;">›</button>
       </div>
       <div class="pool-grid" id="poolGrid"></div>
     </div>
@@ -380,14 +380,9 @@ function renderCardIndicator(){
 function cardToggleDone(){
   const hasPhoto=cards[cardIdx].photos.some(p=>p!==null);
   if(!hasPhoto&&!cards[cardIdx].done){showToast('請先加入照片');return;}
-  const wasDone=cards[cardIdx].done;
-  cards[cardIdx].done=!wasDone;
+  cards[cardIdx].done=!cards[cardIdx].done;
   renderCardIndicator();
-  if(!wasDone){
-    if(cardIdx>=cards.length-1) cards.push(makeCard());
-    const next=cardIdx+1;
-    setTimeout(()=>switchCard(next),50);
-  }
+  // no auto-jump — user uses arrow to go to next card
 }
 
 // pool used = any card uses that photo
@@ -641,7 +636,8 @@ function poolRender(){
   const available=total-used;
   // clear btn
   const clearBtn=document.getElementById('btnPoolClear');
-  if(clearBtn) clearBtn.classList.toggle('dim', total===0);
+  const cardHasData=cards[cardIdx].photos.some(p=>p!==null);
+  if(clearBtn) clearBtn.classList.toggle('dim', total===0&&!cardHasData);
   // canvas slots used
   const canvasUsed=st.photos.filter(p=>p!==null).length;
   pool.forEach((item,i)=>{
@@ -902,16 +898,25 @@ function renderThumbGridDrop(){
 }
 
 document.getElementById('btnPoolClear').addEventListener('click',()=>{
-  if(!pool.length)return;
-  // clear canvas photos that came from pool
-  st.photos=st.photos.map(p=>{
-    if(p && pool.find(item=>item.img===p)) return null;
-    return p;
+  const hasData=cards[cardIdx].photos.some(p=>p!==null)||pool.length>0;
+  if(!hasData)return;
+  // return current card photos to pool (uncheck)
+  cards[cardIdx].photos.forEach((p,i)=>{
+    if(p){
+      const item=pool.find(it=>it.img===p);
+      if(item){
+        item.used=false;
+        const idx2=pool.indexOf(item);
+        const cells=document.querySelectorAll('#poolGrid .pool-cell');
+        if(cells[idx2]) cells[idx2].classList.remove('used');
+      }
+      cards[cardIdx].photos[i]=null;
+      cards[cardIdx].transforms[i]={sc:1,ox:0,oy:0};
+    }
   });
-  pool.length=0;
-  render();renderCellOverlays();updateAlbumUI();poolRender();
-  const hasReal=st.photos.some(p=>p!==null);
-  if(!hasReal) hideCanvas();
+  cards[cardIdx].done=false;
+  render();renderCellOverlays();updateAlbumUI();renderCardIndicator();
+  if(!cards[cardIdx].photos.some(p=>p!==null)) hideCanvas();
 });
 
 
