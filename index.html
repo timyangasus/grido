@@ -846,6 +846,7 @@ document.getElementById('btnExportBorder').addEventListener('click',async()=>{
     // small delay between shares
     if(i<bst.photos.length-1) await new Promise(r=>setTimeout(r,800));
   }
+  bst.photos=[];bRenderGrid();bUpdateUI();
   showToast('完成');
 });
 </script>
