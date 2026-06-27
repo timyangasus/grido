@@ -47,10 +47,9 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .pool-bar{display:flex;align-items:center;padding:6px 16px;gap:8px;flex-shrink:0;border-top:.5px solid var(--bd)}
 .pool-count{font-size:12px;color:var(--t2);flex:1}
 .pool-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;padding:2px;background:#1C1C1E;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0;}
-.pool-cell{position:relative;width:100%;padding-top:100%;background:#2C2C2E;overflow:hidden;cursor:pointer;}
-.pool-cell img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;display:block;}
-.pool-cell.used::after{content:"✓";position:absolute;bottom:4px;right:5px;color:#fff;font-size:14px;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,0.8);z-index:2;}
-.pool-cell.used::before{content:"";position:absolute;inset:0;background:rgba(0,200,150,0.25);z-index:1;}
+.pool-cell{position:relative;width:100%;aspect-ratio:1/1;background:#2C2C2E;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.pool-cell img{width:100%;height:100%;object-fit:contain;display:block;}
+.pool-cell.used::after{content:"✓";position:absolute;right:6px;bottom:6px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;font-size:15px;line-height:22px;text-align:center;font-weight:700;z-index:2;}
 #albumPanel{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
 .iBtn{background:none;border:none;cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:var(--w)}
 .iBtn:active{background:var(--s2)}
@@ -86,6 +85,7 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .pill-btn{background:#000;color:#fff;border:none;border-radius:999px;padding:9px 22px;font-size:14px;font-weight:500;cursor:pointer;margin-left:auto;-webkit-tap-highlight-color:transparent;}
 .pill-btn.dim{opacity:.25;pointer-events:none;}
 .pill-btn:active{opacity:.7}
+.pill-btn.done{background:#1DB954;color:#fff;}
 </style>
 
 <div id="app">
@@ -354,11 +354,15 @@ function renderCardIndicator(){
   const next=document.getElementById('btnNextCard');
   if(prev) prev.style.opacity=cardIdx>0?'1':'0.2';
   if(next) next.style.opacity='1';
-  // show card count
   const btn=document.getElementById('btnCardDone');
   if(btn){
-    const total=cards.length;
-    btn.textContent=cards[cardIdx].done?'取消完成':`完成 (${cardIdx+1}/${total})`;
+    if(cards[cardIdx].done){
+      btn.textContent='✓ 已完成';
+      btn.classList.add('done');
+    } else {
+      btn.textContent=`完成 (${cardIdx+1}/${cards.length})`;
+      btn.classList.remove('done');
+    }
   }
 }
 
@@ -367,9 +371,9 @@ function cardToggleDone(){
   cards[cardIdx].done=!wasDone;
   renderCardIndicator();
   if(!wasDone){
-    // marked done → create new card if needed and switch
     if(cardIdx>=cards.length-1) cards.push(makeCard());
-    setTimeout(()=>switchCard(cardIdx+1),50);
+    const next=cardIdx+1;
+    setTimeout(()=>switchCard(next),50);
   }
 }
 
@@ -718,6 +722,7 @@ setupAddInput('fp2');
 document.querySelectorAll('.tabbtn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
 
 // Card navigation
+document.getElementById('btnCardDone').addEventListener('click',()=>cardToggleDone());
 document.getElementById('btnPrevCard').addEventListener('click',()=>switchCard(cardIdx-1));
 document.getElementById('btnNextCard').addEventListener('click',()=>{
   if(cardIdx===cards.length-1) cards.push(makeCard());
@@ -1190,32 +1195,6 @@ document.getElementById('btnExport').addEventListener('click',async()=>{
 
 window.addEventListener('resize',()=>{if(st.layoutIdx!==null)render();});
 
-// Swipe on preview area to switch cards
-(function(){
-  const preview=document.getElementById('preview');
-  let swipeStartX=null,swipeStartY=null;
-  preview.addEventListener('touchstart',e=>{
-    if(e.touches.length!==1)return;
-    swipeStartX=e.touches[0].clientX;
-    swipeStartY=e.touches[0].clientY;
-  },{passive:true});
-  preview.addEventListener('touchend',e=>{
-    if(swipeStartX===null)return;
-    const dx=e.changedTouches[0].clientX-swipeStartX;
-    const dy=e.changedTouches[0].clientY-swipeStartY;
-    swipeStartX=null;swipeStartY=null;
-    // only horizontal swipe > 60px, not too vertical
-    if(Math.abs(dx)<60||Math.abs(dy)>Math.abs(dx)*0.8)return;
-    if(dx<0){
-      // swipe left → next card
-      if(cardIdx===cards.length-1) cards.push(makeCard());
-      switchCard(cardIdx+1);
-    } else {
-      // swipe right → prev card
-      if(cardIdx>0) switchCard(cardIdx-1);
-    }
-  },{passive:true});
-})();
 
 // init card UI
 showCanvas();render();renderCardIndicator();
