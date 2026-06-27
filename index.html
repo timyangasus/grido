@@ -360,8 +360,7 @@ function renderCardIndicator(){
   const prev=document.getElementById('btnPrevCard');
   const next=document.getElementById('btnNextCard');
   if(prev) prev.style.opacity=cardIdx>0?'1':'0.2';
-  // right arrow: only bright if current card is done OR there are more cards ahead
-  if(next) next.style.opacity=(cards[cardIdx].done||cardIdx<cards.length-1)?'1':'0.2';
+  // next arrow updated after done state is resolved (below)
   const btn=document.getElementById('btnCardDone');
   if(btn){
     if(cards[cardIdx].done){
@@ -371,9 +370,26 @@ function renderCardIndicator(){
     } else {
       btn.textContent=`完成 (${cardIdx+1}/${cards.length})`;
       btn.classList.remove('done');
-      const hasPhoto=cards[cardIdx].photos.some(p=>p!==null);
-      btn.classList.toggle('dim',!hasPhoto);
+      const photos=cards[cardIdx].photos;
+      const hasPhoto=photos.some(p=>p!==null);
+      const layoutFull=st.layoutIdx!==null&&photos.filter(p=>p!==null).length>=ALL_LAYOUTS[st.layoutIdx].n;
+      if(layoutFull&&!cards[cardIdx].done){
+        cards[cardIdx].done=true;
+        btn.textContent='✓ 已完成';
+        btn.classList.add('done');
+        btn.classList.remove('dim');
+      } else {
+        btn.classList.toggle('dim',!hasPhoto);
+      }
+  // update next arrow after done state resolved
+  if(next) next.style.opacity=(cards[cardIdx].done||cardIdx<cards.length-1)?'1':'0.2';
     }
+  }
+  // sync delete button
+  const clearBtn=document.getElementById('btnPoolClear');
+  if(clearBtn){
+    const cardHasData=cards[cardIdx].photos.some(p=>p!==null);
+    clearBtn.classList.toggle('dim',!cardHasData&&!pool.length);
   }
 }
 
@@ -448,6 +464,7 @@ function renderCellOverlays(){
       render();
       renderThumbGrid();
       updateAlbumUI();
+      renderCardIndicator();
       this.value = '';
     });
     lbl.appendChild(inp);
@@ -635,9 +652,7 @@ function poolRender(){
   const used=pool.filter(p=>p.used).length;
   const available=total-used;
   // clear btn
-  const clearBtn=document.getElementById('btnPoolClear');
-  const cardHasData=cards[cardIdx].photos.some(p=>p!==null);
-  if(clearBtn) clearBtn.classList.toggle('dim', total===0&&!cardHasData);
+  // clearBtn dim handled by renderCardIndicator
   // canvas slots used
   const canvasUsed=st.photos.filter(p=>p!==null).length;
   pool.forEach((item,i)=>{
@@ -1207,7 +1222,7 @@ document.getElementById('fr').addEventListener('change',function(){
     const np=[...st.photos];np[cell]=img;
     st.photos=np;st.transforms[cell]={sc:1,ox:0,oy:0};
     if(np.some(p=>p!==null)){showCanvas();}
-    render();updateAlbumUI();
+    render();updateAlbumUI();renderCardIndicator();
   }).catch(()=>{});
 });
 document.getElementById('frInner').addEventListener('change',function(){
@@ -1219,7 +1234,7 @@ document.getElementById('frInner').addEventListener('change',function(){
     const np=[...st.photos];np[cell]=img;
     st.photos=np;st.transforms[cell]={sc:1,ox:0,oy:0};
     if(np.some(p=>p!==null)){showCanvas();}
-    render();updateAlbumUI();
+    render();updateAlbumUI();renderCardIndicator();
   }).catch(()=>{});
 });
 
