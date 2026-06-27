@@ -36,10 +36,11 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .iBtn.dim{opacity:.2;pointer-events:none}
 .iBtn svg{width:24px;height:24px}
 .acount{flex:1;font-size:11px;color:var(--t1);font-weight:500;text-align:center}
-.lgrid{display:flex;flex-wrap:wrap;gap:16px;padding:12px 16px 10px}
+.lgrid{display:flex;flex-wrap:nowrap;gap:12px;padding:12px 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .lthumb{cursor:pointer;opacity:.4;transition:opacity .12s}
 .lthumb.on{opacity:1}
 .lthumb canvas{display:block}
+.lgrid::-webkit-scrollbar{display:none}
 .rpanel{padding:12px 16px 10px}
 .rrow{display:flex;gap:8px}
 .rbtn{flex:1;padding:12px 0;border-radius:0;border:1.5px solid var(--bd);background:var(--s2);color:var(--t2);font-size:14px;font-weight:500;cursor:pointer;text-align:center;transition:all .15s}
@@ -50,6 +51,16 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .tabbtn svg{width:21px;height:21px}
 .toast{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.82);color:#fff;font-size:13px;padding:10px 20px;border-radius:22px;pointer-events:none;opacity:0;transition:opacity .25s;white-space:nowrap;z-index:10}
 .toast.show{opacity:1}
+#panelBorder{display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0}
+#panelBorder.on{display:flex}
+.border-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--t3);cursor:pointer}
+.border-empty svg{width:72px;height:72px;opacity:.6}
+.border-empty p{font-size:12px;font-weight:500;opacity:.6}
+.border-grid{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-wrap:wrap;align-content:flex-start;gap:6px;padding:10px;background:var(--bg);min-height:0}
+.border-cell{position:relative;flex:0 0 calc(33.333% - 4px);aspect-ratio:1;background:var(--s2);overflow:hidden;border-radius:4px}
+.border-cell img{width:100%;height:100%;object-fit:contain;display:block}
+.border-cell .del-btn{position:absolute;top:4px;right:4px;width:22px;height:22px;background:rgba(0,0,0,0.7);border-radius:50%;border:none;color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:1}
+.border-bar{flex-shrink:0;display:flex;align-items:center;padding:10px 20px;gap:10px;background:var(--s1);border-top:.5px solid var(--bd)}
 </style>
 
 <div id="app">
@@ -87,11 +98,30 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
       <div class="panel" id="panelRatio">
         <div class="rpanel">
           <div class="rrow">
-            <button class="rbtn" data-r="2:3">2 : 3</button>
             <button class="rbtn on" data-r="1:1">1 : 1</button>
+            <button class="rbtn" data-r="2:3">2 : 3</button>
+            <button class="rbtn" data-r="3:4">3 : 4</button>
             <button class="rbtn" data-r="9:16">9 : 16</button>
           </div>
         </div>
+      </div>
+    </div>
+    <div id="panelBorder">
+      <label for="fb" class="border-empty" id="borderEmpty">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-480ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h320v80H200v560h560v-320h80v320q0 33-23.5 56.5T760-120H200Zm40-160h480L570-480 450-320l-90-120-120 160Zm440-320v-80h-80v-80h80v-80h80v80h80v80h-80v80h-80Z"/></svg>
+        <p>點此加入照片</p>
+      </label>
+      <div class="border-grid" id="borderGrid" style="display:none"></div>
+      <div class="border-bar" id="borderBar" style="display:none">
+        <label class="iBtn" for="fb" style="cursor:pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
+        </label>
+        <button class="iBtn" id="btnDelBorder">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-272h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
+        </button>
+        <button class="iBtn" id="btnExportBorder" style="margin-left:auto">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg>
+        </button>
       </div>
     </div>
     <div class="toast" id="toast"></div>
@@ -101,14 +131,18 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>相冊
     </button>
     <button class="tabbtn" data-tab="Layout">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>佈局
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>版型
     </button>
     <button class="tabbtn" data-tab="Ratio">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="10" height="18" rx="2"/><rect x="16" y="6" width="5" height="12" rx="1.5"/></svg>比例
     </button>
+    <button class="tabbtn" data-tab="Border">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="6" y="6" width="12" height="12" rx="1"/></svg>白框
+    </button>
   </div>
 </div>
 <input type="file" id="fp" accept="image/*" multiple style="display:none">
+<input type="file" id="fb" accept="image/*" multiple style="display:none">
 <input type="file" id="fr" accept="image/*" style="display:none">
 
 <script>
@@ -137,8 +171,8 @@ const ALL_LAYOUTS=[
   {n:9,f:Array.from({length:9},(_,i)=>({x:(i%3)*_t,y:Math.floor(i/3)*_t,w:_t,h:_t}))},
 ];
 
-const CS={'2:3':{W:2000,H:3000},'1:1':{W:3000,H:3000},'9:16':{W:1688,H:3000}};
-const TS={'2:3':{W:60,H:90},'1:1':{W:72,H:72},'9:16':{W:54,H:96}};
+const CS={'2:3':{W:2000,H:3000},'1:1':{W:3000,H:3000},'3:4':{W:2250,H:3000},'9:16':{W:1688,H:3000}};
+const TS={'2:3':{W:60,H:90},'1:1':{W:72,H:72},'3:4':{W:66,H:88},'9:16':{W:54,H:96}};
 
 // ── State ─────────────────────────────────────────────────────────────────────
 const st={ratio:'1:1',photos:[],layoutIdx:null,selCell:null,repCell:null,transforms:[]};
@@ -236,7 +270,7 @@ function render(){
   ctx.strokeStyle='#ffffff';drawBorders(ctx,layout.f,W,H,lw);
   if(st.selCell!==null&&st.selCell<layout.f.length){
     const r=toRect(layout.f[st.selCell],W,H);
-    const bw=Math.round(6/scale);
+    const bw=Math.round(3/scale);
     ctx.strokeStyle='#00E5CC';ctx.lineWidth=bw;
     ctx.strokeRect(r.x+bw/2,r.y+bw/2,r.w-bw,r.h-bw);
     const xr=Math.round(10/scale),xpad=Math.round(4/scale);
@@ -252,7 +286,6 @@ function render(){
 function renderThumbGrid(){
   const grid=document.getElementById('lgrid');grid.innerHTML='';
   ALL_LAYOUTS.forEach((layout,idx)=>{
-    if(layout.n!==st.photos.length)return;
     const{W,H}=TS[st.ratio];
     const wrap=document.createElement('div');
     const isOn=idx===st.layoutIdx;
@@ -264,7 +297,24 @@ function renderThumbGrid(){
     drawBorders(tctx,layout.f,W,H,1);
     tctx.globalAlpha=1;
     wrap.appendChild(tc);
-    wrap.addEventListener('click',()=>{st.layoutIdx=idx;st.selCell=null;renderThumbGrid();render();});
+    wrap.addEventListener('click',()=>{
+      const n=layout.n;
+      const realPhotos=st.photos.filter(p=>p!==null);
+      // build new photos array: keep real photos up to n, pad rest with null
+      let newPhotos;
+      if(realPhotos.length<=n){
+        newPhotos=[...realPhotos,...new Array(n-realPhotos.length).fill(null)];
+      } else {
+        newPhotos=realPhotos.slice(0,n);
+      }
+      // keep transforms for kept photos
+      const oldTransforms=st.transforms.filter((_,i)=>st.photos[i]!==null);
+      st.photos=newPhotos;
+      st.transforms=newPhotos.map((_,i)=>oldTransforms[i]||{sc:1,ox:0,oy:0});
+      st.layoutIdx=idx;
+      st.selCell=null;
+      showCanvas();render();renderThumbGrid();updateAlbumUI();
+    });
     grid.appendChild(wrap);
   });
 }
@@ -287,17 +337,34 @@ function updateAlbumUI(){
   document.getElementById('btnCheck').classList.toggle('dim',total===0);
 }
 function switchTab(tab){
+  // Border tab: show panelBorder, hide canvas area
+  const borderPanel=document.getElementById('panelBorder');
+  const pageContainer=document.querySelector('.page-container');
+  if(tab==='Border'){
+    borderPanel.classList.add('on');
+    document.querySelector('.nav').style.display='none';
+    document.querySelector('.preview').style.display='none';
+    document.querySelector('.panels').style.display='none';
+  } else {
+    borderPanel.classList.remove('on');
+    document.querySelector('.nav').style.display='';
+    document.querySelector('.preview').style.display='';
+    document.querySelector('.panels').style.display='';
+  }
   // When entering Layout with no photos, pre-fill 6 empty slots
-  if(tab==='Layout' && st.photos.length===0){
+  if(tab==='Layout' && st.photos.every(p=>p===null) && st.photos.length===0){
     st.photos=new Array(6).fill(null);
     st.transforms=st.photos.map(()=>({sc:1,ox:0,oy:0}));
     st.layoutIdx=ALL_LAYOUTS.findIndex(l=>l.n===6);
     st.selCell=null;
   }
-  // Always show canvas if we have a layout, hide if not
-  if(st.layoutIdx!==null){showCanvas();render();}
-  else{hideCanvas();}
-  updateAlbumUI();
+  if(tab!=='Border'){
+    const _hasReal=st.photos.some(p=>p!==null);
+    if(st.layoutIdx!==null && (tab!=='Album' || _hasReal)){showCanvas();render();}
+    else if(tab==='Album' && !_hasReal){hideCanvas();}
+    else if(st.layoutIdx!==null){showCanvas();render();}
+    updateAlbumUI();
+  }
   document.querySelectorAll('.tabbtn').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
   document.querySelectorAll('.panels .panel').forEach(p=>p.classList.toggle('on',p.id==='panel'+tab));
   if(tab==='Layout'){renderThumbGrid();if(st.layoutIdx!==null)requestAnimationFrame(render);}
@@ -319,10 +386,18 @@ function setupAddInput(){
     _addLock=true;
     const self=this;
     setTimeout(()=>{ try{self.value='';}catch(e){} _addLock=false; },100);
-    const slots=9-before.length;
-    if(slots<=0){showToast('最多 9 張');return;}
+    // slots based on current layout size, not hardcoded 9
+    const layoutMax=st.layoutIdx!==null?ALL_LAYOUTS[st.layoutIdx].n:9;
+    const slots=layoutMax-before.length;
+    if(slots<=0){showToast('版型已滿');return;}
     Promise.all(files.slice(0,slots).map(loadImg)).then(imgs=>{
-      applyPhotos([...before,...imgs]);
+      const merged=[...before,...imgs];
+      // fill to layout size with nulls, keep layout fixed
+      const target=st.layoutIdx!==null?ALL_LAYOUTS[st.layoutIdx].n:merged.length;
+      const padded=[...merged,...new Array(Math.max(0,target-merged.length)).fill(null)];
+      const newPhotos=padded.slice(0,target);
+      st.photos=newPhotos;
+      st.transforms=newPhotos.map((_,i)=>st.transforms[i]||{sc:1,ox:0,oy:0});
       showCanvas();render();renderThumbGrid();updateAlbumUI();
     }).catch(()=>{});
   });
@@ -666,4 +741,108 @@ document.getElementById('btnExport').addEventListener('click',()=>{
 });
 
 window.addEventListener('resize',()=>{if(st.layoutIdx!==null)render();});
+
+// ── White Border Feature ──────────────────────────────────────────────────────
+const bst={photos:[],selected:null}; // border state
+
+function bUpdateUI(){
+  const n=bst.photos.length;
+  const empty=document.getElementById('borderEmpty');
+  const grid=document.getElementById('borderGrid');
+  const bar=document.getElementById('borderBar');
+  if(n===0){
+    empty.style.display='';grid.style.display='none';bar.style.display='none';
+  } else {
+    empty.style.display='none';grid.style.display='';bar.style.display='';
+  }
+}
+
+function bRenderGrid(){
+  const grid=document.getElementById('borderGrid');
+  grid.innerHTML='';
+  bst.photos.forEach((img,i)=>{
+    const cell=document.createElement('div');
+    cell.className='border-cell';
+    const im=document.createElement('img');
+    im.src=img.src;
+    cell.appendChild(im);
+    const del=document.createElement('button');
+    del.className='del-btn';
+    del.innerHTML='&times;';
+    del.addEventListener('click',e=>{
+      e.stopPropagation();
+      bst.photos.splice(i,1);
+      bRenderGrid();bUpdateUI();
+    });
+    cell.appendChild(del);
+    grid.appendChild(cell);
+  });
+}
+
+// fb input: load photos for border
+(function(){
+  const inp=document.getElementById('fb');
+  let _lock=false;
+  inp.addEventListener('change',function(){
+    const files=Array.from(this.files);
+    const before=bst.photos.slice();
+    _lock=true;
+    const self=this;
+    setTimeout(()=>{try{self.value='';}catch(e){}_lock=false;},100);
+    if(!files.length)return;
+    Promise.all(files.map(f=>new Promise((res,rej)=>{
+      const r=new FileReader();
+      r.onerror=rej;
+      r.onload=ev=>{const i=new Image();i.onerror=rej;i.onload=()=>res(i);i.src=ev.target.result;};
+      r.readAsDataURL(f);
+    }))).then(imgs=>{
+      bst.photos=[...before,...imgs];
+      bRenderGrid();bUpdateUI();
+    }).catch(()=>{});
+  });
+})();
+
+// delete all border photos
+document.getElementById('btnDelBorder').addEventListener('click',()=>{
+  bst.photos=[];bRenderGrid();bUpdateUI();
+});
+
+// export: add white border to each photo and share
+document.getElementById('btnExportBorder').addEventListener('click',async()=>{
+  if(!bst.photos.length){showToast('沒有照片');return;}
+  showToast('處理中...');
+  const SIZE=3000;
+  const BORDER=Math.round(SIZE*12/100); // 12% border
+  for(let i=0;i<bst.photos.length;i++){
+    const img=bst.photos[i];
+    const ec=document.createElement('canvas');
+    ec.width=SIZE;ec.height=SIZE;
+    const ectx=ec.getContext('2d');
+    // white background
+    ectx.fillStyle='#ffffff';
+    ectx.fillRect(0,0,SIZE,SIZE);
+    // draw image centered with border, object-fit cover
+    const inner=SIZE-BORDER*2;
+    const sc=Math.min(inner/img.width,inner/img.height);
+    const sw=img.width*sc,sh=img.height*sc;
+    const dx=BORDER+(inner-sw)/2,dy=BORDER+(inner-sh)/2;
+    ectx.drawImage(img,dx,dy,sw,sh);
+    await new Promise(resolve=>{
+      ec.toBlob(async blob=>{
+        const file=new File([blob],'grido_border_'+(i+1)+'.jpg',{type:'image/jpeg'});
+        if(navigator.canShare&&navigator.canShare({files:[file]})){
+          try{await navigator.share({files:[file],title:'Grido'});}catch(e){}
+        } else {
+          const url=URL.createObjectURL(blob);
+          const a=document.createElement('a');a.href=url;a.download=file.name;a.click();
+          setTimeout(()=>URL.revokeObjectURL(url),3000);
+        }
+        resolve();
+      },'image/jpeg',0.95);
+    });
+    // small delay between shares
+    if(i<bst.photos.length-1) await new Promise(r=>setTimeout(r,800));
+  }
+  showToast('完成');
+});
 </script>
