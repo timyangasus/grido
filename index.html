@@ -60,10 +60,10 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .iBtn svg{width:24px;height:24px}
 .acount{flex:1;font-size:11px;color:var(--t1);font-weight:500;text-align:center}
 .layout-bar{display:flex;align-items:center;padding:8px 20px 0;background:var(--s1);}
-.lgrid{display:flex;flex-wrap:wrap;gap:10px;padding:10px 12px;}
-.lthumb{cursor:pointer;flex-shrink:0;line-height:0;}
+.lgrid,#lgridDrop{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:18px;padding:18px 22px;width:100%;box-sizing:border-box;}
+.lthumb{cursor:pointer;width:100%;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;}
 .lthumb.on{}
-.lthumb canvas{display:block}
+.lthumb canvas{width:100%;height:100%;display:block;}
 
 .rpanel{padding:12px 16px 10px}
 .rrow{display:flex;gap:8px}
@@ -518,7 +518,7 @@ function renderThumbGrid(){
     const isOn=idx===st.layoutIdx;
     wrap.className='lthumb'+(isOn?' on':'');
     const TSIZE=64;const dpr=window.devicePixelRatio||1;
-    const tc=document.createElement('canvas');tc.width=TSIZE*dpr;tc.height=TSIZE*dpr;tc.style.cssText='display:block;width:'+TSIZE+'px;height:'+TSIZE+'px;';
+    const tc=document.createElement('canvas');tc.width=TSIZE*dpr;tc.height=TSIZE*dpr;tc.style.cssText='display:block;width:100%;height:100%;';
     const tctx=tc.getContext('2d');tctx.scale(dpr,dpr);
     tctx.strokeStyle=isOn?'#ffffff':'#666666';
     drawBorders(tctx,layout.f,TSIZE,TSIZE,1);
@@ -876,7 +876,7 @@ function renderThumbGridDrop(){
     const isOn=idx===st.layoutIdx;
     wrap.className='lthumb'+(isOn?' on':'');
     const TSIZE=64;const dpr=window.devicePixelRatio||1;
-    const tc=document.createElement('canvas');tc.width=TSIZE*dpr;tc.height=TSIZE*dpr;tc.style.cssText='display:block;width:'+TSIZE+'px;height:'+TSIZE+'px;';
+    const tc=document.createElement('canvas');tc.width=TSIZE*dpr;tc.height=TSIZE*dpr;tc.style.cssText='display:block;width:100%;height:100%;';
     const tctx=tc.getContext('2d');tctx.scale(dpr,dpr);
     tctx.strokeStyle=isOn?'#ffffff':'#666666';
     drawBorders(tctx,layout.f,TSIZE,TSIZE,1);
