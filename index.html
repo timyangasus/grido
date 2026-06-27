@@ -25,7 +25,12 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .empty-hint{display:flex;flex-direction:column;align-items:center;gap:14px;color:var(--t3);pointer-events:auto;cursor:pointer}
 .empty-hint svg{width:72px;height:72px;opacity:.6}
 .empty-hint p{font-size:12px;font-weight:500;opacity:.6;letter-spacing:.2px}
-#gcWrap{display:none;line-height:0;flex-shrink:0;}
+#gcWrap{display:none;line-height:0;flex-shrink:0;position:relative;}
+.iBtn,.empty-hint{position:relative;}
+.real-file-input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:5;}
+#cellOverlays{position:absolute;inset:0;pointer-events:none;z-index:6;}
+.cell-file-label{position:absolute;display:block;cursor:pointer;pointer-events:auto;}
+.cell-file-label input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;}
 #gc{display:block;border-radius:0;max-width:100%;max-height:100%}
 .panels{flex-shrink:0;background:var(--s1);border-top:.5px solid var(--bd)}
 .panel{display:none}
@@ -72,16 +77,18 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
       </button>
     </div>
     <div class="preview tap" id="preview">
-      <label for="fp" id="emptyHint" class="empty-hint" style="cursor:pointer">
+      <label id="emptyHint" class="empty-hint" style="cursor:pointer">
+        <input type="file" id="fp" accept="image/*" multiple class="real-file-input">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-480ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h320v80H200v560h560v-320h80v320q0 33-23.5 56.5T760-120H200Zm40-160h480L570-480 450-320l-90-120-120 160Zm440-320v-80h-80v-80h80v-80h80v80h80v80h-80v80h-80Z"/></svg>
         <p>點此建立拼圖</p>
       </label>
-      <div id="gcWrap"><canvas id="gc"></canvas></div>
+      <div id="gcWrap"><canvas id="gc"></canvas><div id="cellOverlays"></div></div>
     </div>
     <div class="panels">
       <div class="panel on" id="panelAlbum">
         <div class="abar">
-          <label class="iBtn" for="fp" style="cursor:pointer">
+          <label class="iBtn" style="cursor:pointer">
+            <input type="file" id="fp2" accept="image/*" multiple class="real-file-input">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
           </label>
           <button class="iBtn dim" id="btnDel">
@@ -141,11 +148,8 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
     </button>
   </div>
 </div>
-<input type="file" id="fp" accept="image/*" multiple style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px;top:-9999px">
-<input type="file" id="fpl" accept="image/*" multiple style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px;top:-9999px">
 <input type="file" id="fb" accept="image/*" multiple style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px;top:-9999px">
 <input type="file" id="fr" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px;top:-9999px">
-<label id="cellFileLabel" for="fr" style="position:fixed;display:none;z-index:999;cursor:pointer"></label>
 
 <script>
 // ── Layouts ───────────────────────────────────────────────────────────────────
@@ -237,53 +241,43 @@ function swapCells(a, b){
 
 function renderCellOverlays(){
   const overlays=document.getElementById('cellOverlays');
-  if(!overlays||st.layoutIdx===null)return;
-  const layout=ALL_LAYOUTS[st.layoutIdx];
-  const fplInp=document.getElementById('fpl');
-  // detach fpl from wherever it is
-  if(fplInp.parentNode) fplInp.parentNode.removeChild(fplInp);
+  if(!overlays||st.layoutIdx===null){if(overlays)overlays.innerHTML='';return;}
   overlays.innerHTML='';
   const activeTab=document.querySelector('.tabbtn.on')?.dataset.tab;
   if(activeTab==='Album'){overlays.style.pointerEvents='none';return;}
-  const cvRect=cvs.getBoundingClientRect();
-  const previewEl=document.getElementById('preview');
-  const previewRect=previewEl.getBoundingClientRect();
-  const scaleX=cvRect.width/cvs.width;
-  const scaleY=cvRect.height/cvs.height;
-  // Each null cell gets a positioned <label> wrapping nothing visible
-  // fpl is repositioned on pointerdown to match the tapped cell
+  const layout=ALL_LAYOUTS[st.layoutIdx];
   layout.f.forEach((f,i)=>{
     if(st.photos[i]!==null)return;
-    const left=cvRect.left-previewRect.left+f.x*cvs.width*scaleX;
-    const top=cvRect.top-previewRect.top+f.y*cvs.height*scaleY;
-    const w=f.w*cvs.width*scaleX;
-    const h=f.h*cvs.height*scaleY;
-    const div=document.createElement('div');
-    div.style.cssText='position:absolute;z-index:3;cursor:pointer;-webkit-tap-highlight-color:transparent;';
-    div.style.left=left+'px';div.style.top=top+'px';
-    div.style.width=w+'px';div.style.height=h+'px';
-    // On pointerdown: record cell and snap fpl to this exact position
-    div.addEventListener('pointerdown',()=>{
-      st.repCell=i;
-      if(fplInp.parentNode) fplInp.parentNode.removeChild(fplInp);
-      fplInp.style.cssText=[
-        'position:fixed',
-        'left:'+( cvRect.left + f.x*cvs.width*scaleX )+'px',
-        'top:'+( cvRect.top + f.y*cvs.height*scaleY )+'px',
-        'width:'+w+'px',
-        'height:'+h+'px',
-        'opacity:0',
-        'z-index:10',
-        'cursor:pointer',
-        'font-size:16px',
-      ].join(';');
-      document.body.appendChild(fplInp);
-    },{passive:true});
-    overlays.appendChild(div);
+    const lbl=document.createElement('label');
+    lbl.className='cell-file-label';
+    lbl.style.left=(f.x*100)+'%';
+    lbl.style.top=(f.y*100)+'%';
+    lbl.style.width=(f.w*100)+'%';
+    lbl.style.height=(f.h*100)+'%';
+    const inp=document.createElement('input');
+    inp.type='file';inp.accept='image/*';inp.multiple=true;
+    inp.addEventListener('change',async function(){
+      const files=Array.from(this.files);
+      if(!files.length)return;
+      const n=layout.n;
+      const nullCells=[];
+      for(let k=0;k<n;k++){
+        const idx=(i+k)%n;
+        if(st.photos[idx]===null)nullCells.push(idx);
+      }
+      const imgs=await Promise.all(files.slice(0,nullCells.length).map(loadImg));
+      imgs.forEach((img,idx)=>{
+        st.photos[nullCells[idx]]=img;
+        st.transforms[nullCells[idx]]={sc:1,ox:0,oy:0};
+      });
+      st.repCell=null;
+      showCanvas();render();renderThumbGrid();updateAlbumUI();
+    });
+    lbl.appendChild(inp);
+    overlays.appendChild(lbl);
   });
   overlays.style.pointerEvents=overlays.children.length>0?'auto':'none';
 }
-
 function render(){
   if(st.layoutIdx===null)return;
   const layout=ALL_LAYOUTS[st.layoutIdx];
@@ -426,8 +420,8 @@ function switchTab(tab){
 // iOS Safari bug: setting input.value='' re-fires the change event.
 // Fix: read files + snapshot FIRST, set a lock, defer the value clear.
 let _addLock=false;
-function setupAddInput(){
-  const inp=document.getElementById('fp');
+function setupAddInput(id){
+  const inp=document.getElementById(id);
   if(!inp)return;
   inp.addEventListener('change',function handleAdd(){
     if(_addLock)return;          // ignore duplicate fire
@@ -461,46 +455,8 @@ function setupAddInput(){
     }).catch(()=>{});
   });
 }
-setupAddInput();
-
-// fpl: layout cell overlay file input (multiple, fills from tapped cell onward)
-(function(){
-  const inp=document.getElementById('fpl');
-  let _lock=false;
-  inp.addEventListener('change',function(){
-    if(_lock)return;
-    const files=Array.from(this.files);
-    // return fpl to hidden state
-    this.style.cssText='position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px;top:-9999px';
-    _lock=true;
-    const self=this;
-    setTimeout(()=>{try{self.value='';}catch(e){}_lock=false;},100);
-    if(!files.length||st.layoutIdx===null)return;
-    const layout=ALL_LAYOUTS[st.layoutIdx];
-    // find null cells from repCell onward (wrap around)
-    const n=layout.n;
-    const startCell=st.repCell!==null?st.repCell:0;
-    const nullCells=[];
-    for(let k=0;k<n;k++){
-      const idx=(startCell+k)%n;
-      if(st.photos[idx]===null) nullCells.push(idx);
-    }
-    if(!nullCells.length){showToast('版型已滿');return;}
-    Promise.all(files.slice(0,nullCells.length).map(f=>new Promise((res,rej)=>{
-      const r=new FileReader();
-      r.onerror=rej;
-      r.onload=ev=>{const i=new Image();i.onerror=rej;i.onload=()=>res(i);i.src=ev.target.result;};
-      r.readAsDataURL(f);
-    }))).then(imgs=>{
-      imgs.forEach((img,i)=>{
-        st.photos[nullCells[i]]=img;
-        st.transforms[nullCells[i]]={sc:1,ox:0,oy:0};
-      });
-      st.repCell=null;
-      showCanvas();render();renderThumbGrid();updateAlbumUI();
-    }).catch(()=>{});
-  });
-})();
+setupAddInput('fp');
+setupAddInput('fp2');
 
 // ── Tab bar ───────────────────────────────────────────────────────────────────
 document.querySelectorAll('.tabbtn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
@@ -909,42 +865,76 @@ document.getElementById('btnDelBorder').addEventListener('click',()=>{
 });
 
 // export: add white border to each photo and share
-document.getElementById('btnExportBorder').addEventListener('click',async()=>{
-  if(!bst.photos.length){showToast('沒有照片');return;}
-  showToast('處理中...');
-  const SIZE=3000;
-  const BORDER=Math.round(SIZE*0.03); // 3% border each side
-  const inner=SIZE-BORDER*2; // available space inside border
-  for(let i=0;i<bst.photos.length;i++){
-    const img=bst.photos[i];
-    const ec=document.createElement('canvas');
-    ec.width=SIZE;ec.height=SIZE;
-    const ectx=ec.getContext('2d');
-    ectx.fillStyle='#ffffff';
-    ectx.fillRect(0,0,SIZE,SIZE);
-    // preserve original aspect ratio, fit within inner square
-    const sc=Math.min(inner/img.width,inner/img.height);
-    const sw=img.width*sc,sh=img.height*sc;
-    const dx=BORDER+(inner-sw)/2;
-    const dy=BORDER+(inner-sh)/2;
-    ectx.drawImage(img,dx,dy,sw,sh);
-    await new Promise(resolve=>{
-      ec.toBlob(async blob=>{
-        const file=new File([blob],'grido_border_'+(i+1)+'.jpg',{type:'image/jpeg'});
-        if(navigator.canShare&&navigator.canShare({files:[file]})){
-          try{await navigator.share({files:[file],title:'Grido'});}catch(e){}
-        } else {
-          const url=URL.createObjectURL(blob);
-          const a=document.createElement('a');a.href=url;a.download=file.name;a.click();
-          setTimeout(()=>URL.revokeObjectURL(url),3000);
-        }
-        resolve();
-      },'image/jpeg',0.95);
-    });
-    // small delay between shares
-    if(i<bst.photos.length-1) await new Promise(r=>setTimeout(r,800));
+// export: add white border to each photo and share
+document.getElementById('btnExportBorder').addEventListener('click', async () => {
+  if (!bst.photos.length) {
+    showToast('沒有照片');
+    return;
   }
-  bst.photos=[];bRenderGrid();bUpdateUI();
-  showToast('完成');
+  showToast('處理中...');
+  const SIZE = 3000;
+  const BORDER = Math.round(SIZE * 0.03); // 白框寬度 3%
+  const inner = SIZE - BORDER * 2;
+  const filesToShare = [];
+  // 先全部產生完成
+  for (let i = 0; i < bst.photos.length; i++) {
+    const img = bst.photos[i];
+    const ec = document.createElement('canvas');
+    ec.width = SIZE;
+    ec.height = SIZE;
+    const ectx = ec.getContext('2d');
+    // 白底
+    ectx.fillStyle = '#ffffff';
+    ectx.fillRect(0, 0, SIZE, SIZE);
+    // 保持比例縮放
+    const sc = Math.min(inner / img.width, inner / img.height);
+    const sw = img.width * sc;
+    const sh = img.height * sc;
+    const dx = BORDER + (inner - sw) / 2;
+    const dy = BORDER + (inner - sh) / 2;
+    ectx.drawImage(img, dx, dy, sw, sh);
+    // canvas → blob
+    const blob = await new Promise(resolve => {
+      ec.toBlob(resolve, 'image/jpeg', 0.95);
+    });
+    const file = new File(
+      [blob],
+      `grido_border_${i + 1}.jpg`,
+      { type: 'image/jpeg' }
+    );
+    filesToShare.push(file);
+  }
+  // 一次分享全部
+  try {
+    if (
+      navigator.canShare &&
+      navigator.canShare({ files: filesToShare })
+    ) {
+      await navigator.share({
+        files: filesToShare,
+        title: 'Grido'
+      });
+    } else {
+      // 不支援多檔分享就逐張下載
+      filesToShare.forEach(file => {
+        const url = URL.createObjectURL(file);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = file.name;
+        a.click();
+        setTimeout(() => {
+          URL.revokeObjectURL(url);
+        }, 3000);
+      });
+      showToast('已下載');
+    }
+  } catch (e) {
+    if (e.name !== 'AbortError') {
+      showToast('輸出失敗');
+    }
+  }
+  bst.photos = [];
+  bRenderGrid();
+  bUpdateUI();
 });
 </script>
