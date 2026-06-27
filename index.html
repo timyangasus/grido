@@ -84,7 +84,7 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .border-cell .del-btn{position:absolute;top:4px;right:4px;width:22px;height:22px;background:rgba(0,0,0,0.7);border-radius:50%;border:none;color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:1}
 .border-bar{flex-shrink:0;display:flex;align-items:center;padding:10px 20px;gap:10px;background:var(--s1);border-top:.5px solid var(--bd)}
 .pill-btn{background:#000;color:#fff;border:none;border-radius:999px;padding:11px 28px;font-size:14px;font-weight:500;cursor:pointer;margin-left:auto;-webkit-tap-highlight-color:transparent;}
-.pill-btn.dim{opacity:.25;pointer-events:none;}
+.pill-btn.dim{opacity:.3;}
 .pill-btn:active{opacity:.7}
 .pill-btn.done{background:#007AFF;color:#fff;}
 </style>
@@ -361,6 +361,8 @@ function renderCardIndicator(){
 }
 
 function cardToggleDone(){
+  const hasPhoto=cards[cardIdx].photos.some(p=>p!==null);
+  if(!hasPhoto&&!cards[cardIdx].done){showToast('請先加入照片');return;}
   const wasDone=cards[cardIdx].done;
   cards[cardIdx].done=!wasDone;
   renderCardIndicator();
