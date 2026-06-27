@@ -692,11 +692,11 @@ function poolRender(){
         requestAnimationFrame(()=>{render();renderCellOverlays();updateAlbumUI();});
         return;
       }
-      // ensure layout exists
-      if(st.layoutIdx===null){
-        st.photos=new Array(6).fill(null);
-        st.transforms=st.photos.map(()=>({sc:1,ox:0,oy:0}));
-        st.layoutIdx=ALL_LAYOUTS.findIndex(l=>l.n===6);
+      // ensure layout exists: start with 1 cell
+      if(st.layoutIdx===null||st.photos.every(p=>p===null)){
+        st.photos=new Array(1).fill(null);
+        st.transforms=[{sc:1,ox:0,oy:0}];
+        st.layoutIdx=ALL_LAYOUTS.findIndex(l=>l.n===1);
         st.selCell=null;
       }
       if(st.selCell!==null){
@@ -802,8 +802,8 @@ function setupAddInput(id){
     const self=this;
     setTimeout(()=>{ try{self.value='';}catch(e){} _addLock=false; },100);
     const currentTabNow=document.querySelector('.tabbtn.on')?.dataset.tab;
-    if(currentTabNow==='Album'){
-      // Album tab: load all selected into pool
+    if(currentTabNow==='Album' && id==='fp2'){
+      // fp2 (+button): load into pool
       const filesCopy=files.slice();
       Promise.all(files.map(loadImg)).then(imgs=>{
         poolAddImgs(imgs, filesCopy);
@@ -928,25 +928,53 @@ function renderThumbGridDrop(){
 }
 
 document.getElementById('btnPoolClear').addEventListener('click',()=>{
-  const hasData=cards[cardIdx].photos.some(p=>p!==null)||pool.length>0;
-  if(!hasData)return;
-  // return current card photos to pool (uncheck)
-  cards[cardIdx].photos.forEach((p,i)=>{
-    if(p){
-      const item=pool.find(it=>it.img===p);
-      if(item){
-        item.used=false;
-        const idx2=pool.indexOf(item);
-        const cells=document.querySelectorAll('#poolGrid .pool-cell');
-        if(cells[idx2]) cells[idx2].classList.remove('used');
+  const hasCanvas=cards[cardIdx].photos.some(p=>p!==null);
+  const hasPool=pool.length>0;
+  if(!hasCanvas&&!hasPool)return;
+
+  // Build action sheet options
+  const options=[];
+  if(hasCanvas) options.push({label:'刪除拼圖',action:'canvas'});
+  if(hasPool) options.push({label:'刪除縮圖',action:'pool'});
+  if(hasCanvas&&hasPool) options.push({label:'全部刪除',action:'all'});
+  options.push({label:'取消',action:'cancel'});
+
+  // Show native-style action sheet via overlay
+  const sheet=document.createElement('div');
+  sheet.style.cssText='position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;justify-content:flex-end;background:rgba(0,0,0,0.5);';
+  const box=document.createElement('div');
+  box.style.cssText='background:#1C1C1E;border-radius:14px 14px 0 0;padding:8px 0 env(safe-area-inset-bottom,0);margin:0;';
+  options.forEach(opt=>{
+    const btn=document.createElement('button');
+    btn.textContent=opt.label;
+    const isCancel=opt.action==='cancel';
+    const isDanger=opt.action!=='cancel';
+    btn.style.cssText='display:block;width:100%;padding:16px;background:none;border:none;border-top:.5px solid #3A3A3C;font-size:17px;cursor:pointer;color:'+(isCancel?'#fff':isDanger?'#FF453A':'#fff')+';';
+    btn.addEventListener('click',()=>{
+      document.body.removeChild(sheet);
+      if(opt.action==='cancel') return;
+      if(opt.action==='canvas'||opt.action==='all'){
+        cards[cardIdx].photos.forEach((p,i)=>{
+          if(p){
+            const item=pool.find(it=>it.img===p);
+            if(item){item.used=false;const c2=document.querySelectorAll('#poolGrid .pool-cell')[pool.indexOf(item)];if(c2)c2.classList.remove('used');}
+            cards[cardIdx].photos[i]=null;cards[cardIdx].transforms[i]={sc:1,ox:0,oy:0};
+          }
+        });
+        cards[cardIdx].done=false;
+        render();renderCellOverlays();updateAlbumUI();renderCardIndicator();
+        if(!cards[cardIdx].photos.some(p=>p!==null)) hideCanvas();
       }
-      cards[cardIdx].photos[i]=null;
-      cards[cardIdx].transforms[i]={sc:1,ox:0,oy:0};
-    }
+      if(opt.action==='pool'||opt.action==='all'){
+        pool.length=0;
+        poolRender();
+      }
+    });
+    box.appendChild(btn);
   });
-  cards[cardIdx].done=false;
-  render();renderCellOverlays();updateAlbumUI();renderCardIndicator();
-  if(!cards[cardIdx].photos.some(p=>p!==null)) hideCanvas();
+  sheet.appendChild(box);
+  sheet.addEventListener('click',e=>{if(e.target===sheet){document.body.removeChild(sheet);}});
+  document.body.appendChild(sheet);
 });
 
 
