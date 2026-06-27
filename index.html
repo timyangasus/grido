@@ -83,10 +83,10 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .border-cell img{width:100%;height:100%;object-fit:contain;display:block}
 .border-cell .del-btn{position:absolute;top:4px;right:4px;width:22px;height:22px;background:rgba(0,0,0,0.7);border-radius:50%;border:none;color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:1}
 .border-bar{flex-shrink:0;display:flex;align-items:center;padding:10px 20px;gap:10px;background:var(--s1);border-top:.5px solid var(--bd)}
-.pill-btn{background:#000;color:#fff;border:none;border-radius:999px;padding:9px 22px;font-size:14px;font-weight:500;cursor:pointer;margin-left:auto;-webkit-tap-highlight-color:transparent;}
+.pill-btn{background:#000;color:#fff;border:none;border-radius:999px;padding:11px 28px;font-size:14px;font-weight:500;cursor:pointer;margin-left:auto;-webkit-tap-highlight-color:transparent;}
 .pill-btn.dim{opacity:.25;pointer-events:none;}
 .pill-btn:active{opacity:.7}
-.pill-btn.done{background:#1DB954;color:#fff;}
+.pill-btn.done{background:#007AFF;color:#fff;}
 </style>
 
 <div id="app">
@@ -138,7 +138,7 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
         <button class="iBtn dim" id="btnPoolClear">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-272h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
         </button>
-        <button class="pill-btn" id="btnCardDone" style="margin-left:0;font-size:13px;padding:7px 14px;">完成 (1/1)</button>
+        <button class="pill-btn dim" id="btnCardDone" style="margin-left:0;">完成 (1/1)</button>
         <label class="iBtn" style="cursor:pointer">
           <input type="file" id="fp2" accept="image/*" multiple class="real-file-input">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
@@ -356,9 +356,12 @@ function renderCardIndicator(){
     if(cards[cardIdx].done){
       btn.textContent='✓ 已完成';
       btn.classList.add('done');
+      btn.classList.remove('dim');
     } else {
       btn.textContent=`完成 (${cardIdx+1}/${cards.length})`;
       btn.classList.remove('done');
+      const hasPhoto=cards[cardIdx].photos.some(p=>p!==null);
+      btn.classList.toggle('dim',!hasPhoto);
     }
   }
 }
@@ -674,7 +677,7 @@ function poolRender(){
       item.used=true;
       cell.classList.add('used');
       showCanvas();
-      requestAnimationFrame(()=>{render();renderCellOverlays();updateAlbumUI();});
+      requestAnimationFrame(()=>{render();renderCellOverlays();updateAlbumUI();renderCardIndicator();});
     });
     grid.appendChild(cell);
   });
