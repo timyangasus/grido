@@ -142,6 +142,7 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
   </div>
 </div>
 <input type="file" id="fp" accept="image/*" multiple style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px;top:-9999px">
+<input type="file" id="fpl" accept="image/*" multiple style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px;top:-9999px">
 <input type="file" id="fb" accept="image/*" multiple style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px;top:-9999px">
 <input type="file" id="fr" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px;top:-9999px">
 <label id="cellFileLabel" for="fr" style="position:fixed;display:none;z-index:999;cursor:pointer"></label>
@@ -250,16 +251,24 @@ function renderCellOverlays(){
     overlays.style.pointerEvents='none';
     return;
   }
+  let fplMoved=false;
   layout.f.forEach((f,i)=>{
     if(st.photos[i]!==null)return;
     const lbl=document.createElement('label');
-    lbl.htmlFor='fp';
-    lbl.style.cssText='position:absolute;display:block;cursor:pointer;z-index:3;';
+    lbl.htmlFor='fpl';
+    lbl.style.cssText='position:absolute;display:block;cursor:pointer;z-index:3;-webkit-tap-highlight-color:transparent;';
     lbl.style.left=(cvRect.left-previewRect.left+f.x*cvs.width*scaleX)+'px';
     lbl.style.top=(cvRect.top-previewRect.top+f.y*cvs.height*scaleY)+'px';
     lbl.style.width=(f.w*cvs.width*scaleX)+'px';
     lbl.style.height=(f.h*cvs.height*scaleY)+'px';
-    lbl.addEventListener('pointerdown',()=>{st.repCell=i;});
+    lbl.addEventListener('pointerdown',()=>{st.repCell=i;},true);
+    // Move fpl input inside first null cell label for iOS Safari
+    if(!fplMoved){
+      const fplInp=document.getElementById('fpl');
+      fplInp.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px;';
+      lbl.appendChild(fplInp);
+      fplMoved=true;
+    }
     overlays.appendChild(lbl);
   });
   overlays.style.pointerEvents=overlays.children.length>0?'auto':'none';
@@ -419,10 +428,11 @@ function setupAddInput(){
     _addLock=true;
     const self=this;
     setTimeout(()=>{ try{self.value='';}catch(e){} _addLock=false; },100);
-    // slots based on current layout size, not hardcoded 9
-    const layoutMax=st.layoutIdx!==null?ALL_LAYOUTS[st.layoutIdx].n:9;
+    // Album/Ratio tab: max 9; Layout tab: limited to layout size
+    const currentTabNow=document.querySelector('.tabbtn.on')?.dataset.tab;
+    const layoutMax=(currentTabNow==='Album'||currentTabNow==='Ratio')?9:(st.layoutIdx!==null?ALL_LAYOUTS[st.layoutIdx].n:9);
     const slots=layoutMax-before.length;
-    if(slots<=0){showToast('版型已滿');return;}
+    if(slots<=0){showToast(currentTabNow==='Album'?'最多 9 張':'版型已滿');return;}
     Promise.all(files.slice(0,slots).map(loadImg)).then(imgs=>{
       const merged=[...before,...imgs];
       // In Album tab: reset layout to match photo count
@@ -442,6 +452,43 @@ function setupAddInput(){
   });
 }
 setupAddInput();
+
+// fpl: layout cell overlay file input (multiple, fills from tapped cell onward)
+(function(){
+  const inp=document.getElementById('fpl');
+  let _lock=false;
+  inp.addEventListener('change',function(){
+    if(_lock)return;
+    const files=Array.from(this.files);
+    _lock=true;
+    const self=this;
+    setTimeout(()=>{try{self.value='';}catch(e){}_lock=false;},100);
+    if(!files.length||st.layoutIdx===null)return;
+    const layout=ALL_LAYOUTS[st.layoutIdx];
+    // find null cells from repCell onward (wrap around)
+    const n=layout.n;
+    const startCell=st.repCell!==null?st.repCell:0;
+    const nullCells=[];
+    for(let k=0;k<n;k++){
+      const idx=(startCell+k)%n;
+      if(st.photos[idx]===null) nullCells.push(idx);
+    }
+    if(!nullCells.length){showToast('版型已滿');return;}
+    Promise.all(files.slice(0,nullCells.length).map(f=>new Promise((res,rej)=>{
+      const r=new FileReader();
+      r.onerror=rej;
+      r.onload=ev=>{const i=new Image();i.onerror=rej;i.onload=()=>res(i);i.src=ev.target.result;};
+      r.readAsDataURL(f);
+    }))).then(imgs=>{
+      imgs.forEach((img,i)=>{
+        st.photos[nullCells[i]]=img;
+        st.transforms[nullCells[i]]={sc:1,ox:0,oy:0};
+      });
+      st.repCell=null;
+      showCanvas();render();renderThumbGrid();updateAlbumUI();
+    }).catch(()=>{});
+  });
+})();
 
 // ── Tab bar ───────────────────────────────────────────────────────────────────
 document.querySelectorAll('.tabbtn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
