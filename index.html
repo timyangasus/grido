@@ -371,10 +371,7 @@ function renderCardIndicator(){
       cards[cardIdx].done=true;
     }
     btn.textContent=cardIdx+1;
-    if(cards[cardIdx].done){
-      btn.style.background='#007AFF';
-      btn.style.color='#fff';
-    } else if(hasPhoto){
+    if(hasPhoto){
       btn.style.background='#007AFF';
       btn.style.color='#fff';
     } else {
