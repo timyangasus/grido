@@ -525,7 +525,7 @@ document.getElementById('btnCheck').addEventListener('click',()=>{
       }
       const cell=hitCell(p.x,p.y);
       if(cell===null){st.selCell=null;render();gesture=null;return;}
-      if(st.photos[cell]===null){document.getElementById('fp').click();gesture=null;return;}
+      if(st.photos[cell]===null){st.repCell=cell;document.getElementById('fr').click();gesture=null;return;}
 
       // start long press timer for drag-to-swap
       _longPressTimer=setTimeout(()=>{
@@ -667,7 +667,7 @@ document.getElementById('btnCheck').addEventListener('click',()=>{
     }
     const cell=hitCell(p.x,p.y);
     if(cell===null){st.selCell=null;render();return;}
-    if(st.photos[cell]===null){document.getElementById('fp').click();return;}
+    if(st.photos[cell]===null){st.repCell=cell;document.getElementById('fr').click();return;}
     if(st.selCell===cell){st.repCell=cell;document.getElementById('fr').click();}
     else{st.selCell=cell;render();}
   });
@@ -812,7 +812,7 @@ document.getElementById('btnExportBorder').addEventListener('click',async()=>{
   if(!bst.photos.length){showToast('沒有照片');return;}
   showToast('處理中...');
   const SIZE=3000;
-  const BORDER=Math.round(SIZE*0.05); // 5% border
+  const BORDER=Math.round(SIZE*0.03); // 3% border
   // inner area is 2:3 ratio centered in the square
   const innerW=SIZE-BORDER*2;
   const innerH=Math.round(innerW*3/2); // 2:3 = width:height
