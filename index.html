@@ -837,7 +837,9 @@ document.querySelectorAll('.tabbtn').forEach(b=>b.addEventListener('click',()=>s
 
 // Card navigation
 document.getElementById('btnCardDone').addEventListener('click',()=>cardToggleDone());
-document.getElementById('btnPrevCard').addEventListener('click',()=>switchCard(cardIdx-1));
+document.getElementById('btnPrevCard').addEventListener('click',()=>{
+  if(cardIdx>0) switchCard(cardIdx-1);
+});
 document.getElementById('btnNextCard').addEventListener('click',()=>{
   if(cardIdx===cards.length-1){
     // only create new card if current is done
@@ -1081,7 +1083,7 @@ document.getElementById('btnPoolClear').addEventListener('click',()=>{
           if(delImg) poolReturn(delImg);
           if(!st.photos.length){hideCanvas();document.getElementById('lgrid').innerHTML='';}
           else{render();renderThumbGrid();}
-          updateAlbumUI();gesture=null;return;
+          updateAlbumUI();renderCardIndicator();gesture=null;return;
         }
       }
       const cell=hitCell(p.x,p.y);
@@ -1233,7 +1235,7 @@ document.getElementById('btnPoolClear').addEventListener('click',()=>{
         if(delImg2) poolReturn(delImg2);
         if(!st.photos.length){hideCanvas();document.getElementById('lgrid').innerHTML='';}
         else{render();renderThumbGrid();}
-        updateAlbumUI();return;
+        updateAlbumUI();renderCardIndicator();return;
       }
     }
     const cell=hitCell(p.x,p.y);
