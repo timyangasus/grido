@@ -58,10 +58,10 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .iBtn svg{width:24px;height:24px}
 .acount{flex:1;font-size:11px;color:var(--t1);font-weight:500;text-align:center}
 .layout-bar{display:flex;align-items:center;padding:8px 20px 0;background:var(--s1);}
-.lgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:10px 12px;}
+.lgrid{display:flex;flex-wrap:wrap;gap:10px;padding:10px 12px;}
 .lthumb{cursor:pointer;opacity:.4;transition:opacity .12s}
 .lthumb.on{opacity:1}
-.lthumb canvas{display:block;width:100% !important;height:auto !important;aspect-ratio:1;}
+.lthumb canvas{display:block}
 
 .rpanel{padding:12px 16px 10px}
 .rrow{display:flex;gap:8px}
@@ -295,13 +295,21 @@ function applyPhotos(arr){
 // ── Render ────────────────────────────────────────────────────────────────────
 function drawBorders(c,fracs,W,H,lw){
   c.save();
-  c.lineWidth=lw;
+  // Outer border: lw*2, inner dividers: lw
+  const outer=lw*2;
+  const inner=lw;
+  // Draw outer rect
+  c.lineWidth=outer;
+  c.strokeRect(outer/2,outer/2,W-outer,H-outer);
+  // Draw each cell border inset, clipping to inner area
+  c.lineWidth=inner;
   fracs.forEach(f=>{
     const x=Math.round(f.x*W);
     const y=Math.round(f.y*H);
     const w=Math.round((f.x+f.w)*W)-x;
     const h=Math.round((f.y+f.h)*H)-y;
-    c.strokeRect(x+lw/2,y+lw/2,w-lw,h-lw);
+    // skip cells touching outer edge for their outer sides
+    c.strokeRect(x+inner/2,y+inner/2,w-inner,h-inner);
   });
   c.restore();
 }
@@ -506,11 +514,11 @@ function renderThumbGrid(){
     const isOn=idx===st.layoutIdx;
     wrap.className='lthumb'+(isOn?' on':'');
     const TSIZE=64;const dpr=window.devicePixelRatio||1;
-    const tc=document.createElement('canvas');tc.width=TSIZE*dpr;tc.height=TSIZE*dpr;tc.style.cssText='display:block;width:100%;height:auto;';
+    const tc=document.createElement('canvas');tc.width=TSIZE*dpr;tc.height=TSIZE*dpr;tc.style.cssText='display:block;';
     const tctx=tc.getContext('2d');tctx.scale(dpr,dpr);
     tctx.globalAlpha=isOn?0.9:0.45;
     tctx.strokeStyle='#ffffff';
-    drawBorders(tctx,layout.f,TSIZE,TSIZE,0.5);
+    drawBorders(tctx,layout.f,TSIZE,TSIZE,1);
     tctx.globalAlpha=1;
     wrap.appendChild(tc);
     wrap.addEventListener('click',()=>{
@@ -863,11 +871,11 @@ function renderThumbGridDrop(){
     const isOn=idx===st.layoutIdx;
     wrap.className='lthumb'+(isOn?' on':'');
     const TSIZE=64;const dpr=window.devicePixelRatio||1;
-    const tc=document.createElement('canvas');tc.width=TSIZE*dpr;tc.height=TSIZE*dpr;tc.style.cssText='display:block;width:100%;height:auto;';
+    const tc=document.createElement('canvas');tc.width=TSIZE*dpr;tc.height=TSIZE*dpr;tc.style.cssText='display:block;';
     const tctx=tc.getContext('2d');tctx.scale(dpr,dpr);
     tctx.globalAlpha=isOn?0.9:0.45;
     tctx.strokeStyle='#ffffff';
-    drawBorders(tctx,layout.f,TSIZE,TSIZE,0.5);
+    drawBorders(tctx,layout.f,TSIZE,TSIZE,1);
     tctx.globalAlpha=1;
     wrap.appendChild(tc);
     wrap.addEventListener('click',()=>{
