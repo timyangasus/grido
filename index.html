@@ -46,10 +46,9 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .abar{display:flex;align-items:center;padding:8px 16px;gap:10px;flex-shrink:0}
 .pool-bar{display:flex;align-items:center;padding:6px 12px;gap:6px;flex-shrink:0;border-top:.5px solid var(--bd)}
 .pool-count{font-size:12px;color:var(--t2);flex:1}
-.pool-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;padding:3px;background:#111;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0;}
-.pool-cell{position:relative;aspect-ratio:1/1;background:#2C2C2E;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.pool-cell::before{content:none !important;display:none !important;}
-.pool-cell img{position:static;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;}
+.pool-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:3px;background:#111;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0;}
+.pool-cell{position:relative;background:#2C2C2E;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.pool-cell img{position:static;max-width:100%;max-height:100%;width:auto;height:auto;display:block;}
 .pool-cell.used .pool-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.55);z-index:1;}
 .pool-cell.used::after{content:"✓";position:absolute;right:6px;bottom:6px;width:24px;height:24px;border-radius:50%;background:#fff;color:#000;font-size:15px;line-height:24px;text-align:center;font-weight:700;z-index:2;}
 #albumPanel{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
@@ -666,6 +665,18 @@ function poolRender(){
     }
     grid.appendChild(cell);
   });
+  fixPoolCells();
+}
+
+function fixPoolCells(){
+  // Force square cells using JS - iOS Safari doesn't reliably support aspect-ratio in grid
+  const grid=document.getElementById('poolGrid');
+  if(!grid)return;
+  const cellW=grid.querySelector('.pool-cell')?.offsetWidth||0;
+  if(!cellW)return;
+  grid.querySelectorAll('.pool-cell').forEach(c=>{
+    c.style.height=cellW+'px';
+  });
 }
 
 function poolAddImgs(imgs, files){
@@ -1206,7 +1217,7 @@ document.getElementById('btnExport').addEventListener('click',async()=>{
   }catch(e){if(e.name!=='AbortError')showToast('輸出失敗');}
 });
 
-window.addEventListener('resize',()=>{if(st.layoutIdx!==null)render();});
+window.addEventListener('resize',()=>{if(st.layoutIdx!==null)render();fixPoolCells();});
 
 
 // init card UI
