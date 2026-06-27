@@ -150,6 +150,7 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 </div>
 <input type="file" id="fb" accept="image/*" multiple style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px;top:-9999px">
 <input type="file" id="fr" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px;top:-9999px">
+<label id="replaceLabel" style="position:fixed;display:none;z-index:20;cursor:pointer"><input type="file" id="frInner" accept="image/*" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px;"></label>
 
 <script>
 // ── Layouts ───────────────────────────────────────────────────────────────────
@@ -230,6 +231,24 @@ function drawBorders(c,fracs,W,H,lw){
   });
   c.restore();
 }
+function showReplaceLabel(cell){
+  if(st.layoutIdx===null)return;
+  const f=ALL_LAYOUTS[st.layoutIdx].f[cell];
+  const cvRect=cvs.getBoundingClientRect();
+  const scaleX=cvRect.width/cvs.width;
+  const scaleY=cvRect.height/cvs.height;
+  const lbl=document.getElementById('replaceLabel');
+  lbl.style.display='block';
+  lbl.style.left=(cvRect.left+f.x*cvs.width*scaleX)+'px';
+  lbl.style.top=(cvRect.top+f.y*cvs.height*scaleY)+'px';
+  lbl.style.width=(f.w*cvs.width*scaleX)+'px';
+  lbl.style.height=(f.h*cvs.height*scaleY)+'px';
+  st.repCell=cell;
+}
+function hideReplaceLabel(){
+  document.getElementById('replaceLabel').style.display='none';
+}
+
 function swapCells(a, b){
   // swap photos
   const tmp=st.photos[a]; st.photos[a]=st.photos[b]; st.photos[b]=tmp;
@@ -592,7 +611,8 @@ document.getElementById('btnCheck').addEventListener('click',()=>{
         gesture={mode:'drag',cell,
           startX:p.x,startY:p.y,
           startOx:st.transforms[cell].ox,
-          startOy:st.transforms[cell].oy};
+          startOy:st.transforms[cell].oy,
+          isTap:true};
       } else {
         st.selCell=cell;render();gesture=null;
       }
@@ -634,6 +654,7 @@ document.getElementById('btnCheck').addEventListener('click',()=>{
       ox=Math.max(-maxOx,Math.min(maxOx,ox));
       oy=Math.max(-maxOy,Math.min(maxOy,oy));
       t.ox=ox;t.oy=oy;
+      gesture.isTap=false;
       render();
     } else if(gesture.mode==='pinch'&&touches.length>=2){
       const p1=toCanvas(touches[0].clientX,touches[0].clientY);
@@ -655,6 +676,12 @@ document.getElementById('btnCheck').addEventListener('click',()=>{
   cvs.addEventListener('touchend',e=>{
     e.preventDefault();
     clearTimeout(_longPressTimer);_longPressTimer=null;
+    if(gesture&&gesture.mode==='drag'&&gesture.isTap){
+      const cell=gesture.cell;
+      gesture=null;_floatOverlay=null;
+      showReplaceLabel(cell);
+      return;
+    }
     if(gesture&&gesture.mode==='reorder'){
       const touch=e.changedTouches[0];
       const targetCell=hitCellAt(touch.clientX,touch.clientY);
@@ -722,15 +749,13 @@ document.getElementById('btnCheck').addEventListener('click',()=>{
     const cell=hitCell(p.x,p.y);
     if(cell===null){st.selCell=null;render();return;}
     if(st.photos[cell]===null){return;} // overlay handles null cells
-    if(st.selCell===cell){
-      st.repCell=cell;
-      document.getElementById('fr').click(); // desktop fallback; touch uses long-press
-    }
+    if(st.selCell===cell){showReplaceLabel(cell);}
     else{st.selCell=cell;render();}
   });
 
   document.getElementById('preview').addEventListener('click',e=>{
     if(e.target===cvs)return;
+    hideReplaceLabel();
     if(st.selCell!==null){st.selCell=null;render();}
   });
 })();
@@ -742,9 +767,19 @@ document.getElementById('fr').addEventListener('change',function(){
   const cell=st.repCell;st.repCell=null;
   loadImg(f).then(img=>{
     const np=[...st.photos];np[cell]=img;
-    st.photos=np;
-    st.transforms[cell]={sc:1,ox:0,oy:0};
-    // if previously empty layout mode, show canvas
+    st.photos=np;st.transforms[cell]={sc:1,ox:0,oy:0};
+    if(np.some(p=>p!==null)){showCanvas();}
+    render();updateAlbumUI();
+  }).catch(()=>{});
+});
+document.getElementById('frInner').addEventListener('change',function(){
+  const f=this.files[0];this.value='';
+  hideReplaceLabel();
+  if(!f||st.repCell===null)return;
+  const cell=st.repCell;st.repCell=null;
+  loadImg(f).then(img=>{
+    const np=[...st.photos];np[cell]=img;
+    st.photos=np;st.transforms[cell]={sc:1,ox:0,oy:0};
     if(np.some(p=>p!==null)){showCanvas();}
     render();updateAlbumUI();
   }).catch(()=>{});
@@ -904,33 +939,21 @@ document.getElementById('btnExportBorder').addEventListener('click', async () =>
     );
     filesToShare.push(file);
   }
-  // 一次分享全部
-  try {
-    if (
-      navigator.canShare &&
-      navigator.canShare({ files: filesToShare })
-    ) {
-      await navigator.share({
-        files: filesToShare,
-        title: 'Grido'
-      });
-    } else {
-      // 不支援多檔分享就逐張下載
-      filesToShare.forEach(file => {
+  // 逐張分享（iOS 不支援一次多檔）
+  for (let i = 0; i < filesToShare.length; i++) {
+    const file = filesToShare[i];
+    try {
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: 'Grido' });
+      } else {
         const url = URL.createObjectURL(file);
         const a = document.createElement('a');
-        a.href = url;
-        a.download = file.name;
-        a.click();
-        setTimeout(() => {
-          URL.revokeObjectURL(url);
-        }, 3000);
-      });
-      showToast('已下載');
-    }
-  } catch (e) {
-    if (e.name !== 'AbortError') {
-      showToast('輸出失敗');
+        a.href = url; a.download = file.name; a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 3000);
+      }
+    } catch (e) {
+      if (e.name === 'AbortError') break; // 使用者取消就停止
+      showToast('輸出失敗'); break;
     }
   }
   bst.photos = [];
