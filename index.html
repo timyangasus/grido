@@ -444,13 +444,27 @@ function renderCellOverlays(){
     inp.addEventListener('change', async function () {
       const files = Array.from(this.files);
       if (!files.length) return;
-      const n = layout.n;
+      // expand layout to fit all selected files (up to 9)
+      const toAdd = Math.min(files.length, 9 - st.photos.filter(p=>p!==null).length);
+      if(toAdd <= 0){showToast('最多9張');this.value='';return;}
+      // expand layout slots to fit incoming files
+      const currentFilled = st.photos.filter(p=>p!==null).length;
+      const targetTotal = Math.min(9, currentFilled + files.length);
+      while(st.photos.length < targetTotal){
+        const newN = st.photos.length + 1;
+        const li = ALL_LAYOUTS.findIndex(l=>l.n===newN);
+        if(li < 0) break;
+        st.photos = [...st.photos, null];
+        st.transforms = [...st.transforms, {sc:1,ox:0,oy:0}];
+        st.layoutIdx = li;
+      }
+      // collect null cells from tapped cell onward
+      const curN = st.photos.length;
       const nullCells = [];
-      for (let k = 0; k < n; k++) {
-        const idx = (i + k) % n;
-        if (st.photos[idx] === null) {
-          nullCells.push(idx);
-        }
+      for (let k = 0; k < curN; k++) {
+        const idx = (i + k) % curN;
+        if (st.photos[idx] === null) nullCells.push(idx);
+        if (nullCells.length >= toAdd) break;
       }
       const imgs = await Promise.all(
         files.slice(0, nullCells.length).map(loadImg)
@@ -713,11 +727,12 @@ function poolRender(){
       if(slot<0){
         const cur=st.photos.length;
         if(cur>=9){showToast('最多9張');return;}
+        const newN=cur+1;
+        const li=ALL_LAYOUTS.findIndex(l=>l.n===newN);
+        if(li<0){showToast('沒有對應版型');return;}
         st.photos=[...st.photos,null];
         st.transforms=[...st.transforms,{sc:1,ox:0,oy:0}];
-        const newN=st.photos.length;
-        const li=ALL_LAYOUTS.findIndex(l=>l.n===newN);
-        if(li>=0) st.layoutIdx=li;
+        st.layoutIdx=li;
         slot=st.photos.length-1;
       }
       st.photos[slot]=item.img;
