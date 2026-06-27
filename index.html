@@ -46,7 +46,7 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .abar{display:flex;align-items:center;padding:8px 16px;gap:10px;flex-shrink:0}
 .pool-bar{display:flex;align-items:center;padding:6px 12px;gap:6px;flex-shrink:0;border-top:.5px solid var(--bd)}
 .pool-count{font-size:12px;color:var(--t2);flex:1}
-.pool-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:3px;background:#111;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0;}
+.pool-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:3px;background:#111;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;flex:1;min-height:0;}
 .pool-cell{position:relative;background:#2C2C2E;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .pool-cell img{position:static;max-width:100%;max-height:100%;width:auto;height:auto;display:block;}
 .pool-cell.used .pool-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.55);z-index:1;}
@@ -376,13 +376,16 @@ function cardToggleDone(){
 
 // pool used = any card uses that photo
 function poolSyncUsedFast(){
-  // update used state and CSS class only, no DOM rebuild
+  if(!pool.length)return;
   const grid=document.getElementById('poolGrid');
   if(!grid)return;
   const cells=grid.querySelectorAll('.pool-cell');
+  if(!cells.length)return;
   pool.forEach((item,i)=>{
+    const wasUsed=item.used;
     item.used=cards.some(card=>card.photos.includes(item.img));
-    if(cells[i]) cells[i].classList.toggle('used',item.used);
+    if(wasUsed!==item.used && cells[i])
+      cells[i].classList.toggle('used',item.used);
   });
 }
 
@@ -625,6 +628,7 @@ const pool = []; // {img, usedInCanvas: false}
 function poolRender(){
   const grid=document.getElementById('poolGrid');
   if(!grid)return;
+  const savedScroll=grid.scrollTop;
   grid.innerHTML='';
   const total=pool.length;
   const used=pool.filter(p=>p.used).length;
@@ -646,14 +650,13 @@ function poolRender(){
     // no delete button — pool is a temp library
     cell.addEventListener('click',()=>{
       if(item.used){
-        // uncheck + remove from all cards
         item.used=false;
         cell.classList.remove('used');
         cards.forEach(card=>{
           const ci=card.photos.indexOf(item.img);
           if(ci>=0){card.photos[ci]=null;card.transforms[ci]={sc:1,ox:0,oy:0};}
         });
-        render();renderCellOverlays();updateAlbumUI();
+        requestAnimationFrame(()=>{render();renderCellOverlays();updateAlbumUI();});
         return;
       }
       // ensure layout exists
@@ -678,11 +681,13 @@ function poolRender(){
       st.transforms[slot]={sc:1,ox:0,oy:0};
       item.used=true;
       cell.classList.add('used');
-      showCanvas();render();renderCellOverlays();updateAlbumUI();
+      showCanvas();
+      requestAnimationFrame(()=>{render();renderCellOverlays();updateAlbumUI();});
     });
     grid.appendChild(cell);
   });
   fixPoolCells();
+  requestAnimationFrame(()=>{grid.scrollTop=savedScroll;});
 }
 
 function fixPoolCells(){
@@ -714,8 +719,13 @@ function poolAddImgs(imgs, files){
 // When canvas cell is deleted → return photo to pool
 function poolReturn(img){
   const item=pool.find(p=>p.img===img);
-  if(item) item.used=false;
-  poolRender();
+  if(!item)return;
+  item.used=false;
+  // fast update: just toggle class on existing cell
+  const idx=pool.indexOf(item);
+  const grid=document.getElementById('poolGrid');
+  const cell=grid?.querySelectorAll('.pool-cell')[idx];
+  if(cell) cell.classList.remove('used');
 }
 
 // poolSyncUsed defined above in card management
