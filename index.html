@@ -907,7 +907,6 @@ document.getElementById('btnDelBorder').addEventListener('click',()=>{
 });
 
 // export: add white border to each photo and share
-// export: add white border to each photo and share
 document.getElementById('btnExportBorder').addEventListener('click', async () => {
   if (!bst.photos.length) {
     showToast('沒有照片');
@@ -915,56 +914,67 @@ document.getElementById('btnExportBorder').addEventListener('click', async () =>
   }
   showToast('處理中...');
   const SIZE = 3000;
-  const BORDER = Math.round(SIZE * 0.03); // 白框寬度 3%
+  const BORDER = Math.round(SIZE * 0.03);
   const inner = SIZE - BORDER * 2;
   const filesToShare = [];
-  // 先全部產生完成
   for (let i = 0; i < bst.photos.length; i++) {
     const img = bst.photos[i];
     const ec = document.createElement('canvas');
     ec.width = SIZE;
     ec.height = SIZE;
     const ectx = ec.getContext('2d');
-    // 白底
     ectx.fillStyle = '#ffffff';
     ectx.fillRect(0, 0, SIZE, SIZE);
-    // 保持比例縮放
     const sc = Math.min(inner / img.width, inner / img.height);
     const sw = img.width * sc;
     const sh = img.height * sc;
     const dx = BORDER + (inner - sw) / 2;
     const dy = BORDER + (inner - sh) / 2;
     ectx.drawImage(img, dx, dy, sw, sh);
-    // canvas → blob
     const blob = await new Promise(resolve => {
       ec.toBlob(resolve, 'image/jpeg', 0.95);
     });
-    const file = new File(
-      [blob],
-      `grido_border_${i + 1}.jpg`,
-      { type: 'image/jpeg' }
+    if (!blob) {
+      showToast('輸出失敗');
+      return;
+    }
+    filesToShare.push(
+      new File(
+        [blob],
+        `grido_border_${i + 1}.jpg`,
+        { type: 'image/jpeg' }
+      )
     );
-    filesToShare.push(file);
   }
-  // 逐張分享（iOS 不支援一次多檔）
-  for (let i = 0; i < filesToShare.length; i++) {
-    const file = filesToShare[i];
-    try {
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: 'Grido' });
-      } else {
+  try {
+    if (
+      navigator.canShare &&
+      navigator.canShare({ files: filesToShare })
+    ) {
+      await navigator.share({
+        files: filesToShare,
+        title: 'Grido'
+      });
+    } else {
+      filesToShare.forEach(file => {
         const url = URL.createObjectURL(file);
         const a = document.createElement('a');
-        a.href = url; a.download = file.name; a.click();
-        setTimeout(() => URL.revokeObjectURL(url), 3000);
-      }
-    } catch (e) {
-      if (e.name === 'AbortError') break; // 使用者取消就停止
-      showToast('輸出失敗'); break;
+        a.href = url;
+        a.download = file.name;
+        a.click();
+        setTimeout(() => {
+          URL.revokeObjectURL(url);
+        }, 3000);
+      });
+      showToast('已下載');
+    }
+    bst.photos = [];
+    bRenderGrid();
+    bUpdateUI();
+  } catch (e) {
+    if (e.name !== 'AbortError') {
+      showToast('輸出失敗');
     }
   }
-  bst.photos = [];
-  bRenderGrid();
-  bUpdateUI();
 });
 </script>
