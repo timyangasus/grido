@@ -46,7 +46,7 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .abar{display:flex;align-items:center;padding:8px 16px;gap:10px;flex-shrink:0}
 .pool-bar{display:flex;align-items:center;padding:6px 12px;gap:6px;flex-shrink:0;border-top:.5px solid var(--bd)}
 .pool-count{font-size:12px;color:var(--t2);flex:1}
-.pool-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;padding:3px;background:#111;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;flex:1;min-height:0;}
+.pool-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:3px;background:#111;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;flex:1;min-height:0;}
 .pool-cell{position:relative;background:#2C2C2E;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .pool-cell img{position:static;max-width:100%;max-height:100%;width:auto;height:auto;display:block;}
 .pool-cell.used .pool-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.55);z-index:1;}
@@ -713,7 +713,7 @@ function fixPoolCells(){
     if(!grid)return;
     // use grid width / 3 accounting for gaps
     const gridW=grid.offsetWidth;
-    const cellW=Math.floor((gridW-15)/4); // 3px gap x3 + 3px padding x2
+    const cellW=Math.floor((gridW-9)/3); // 3px gap x2 + 3px padding x2
     if(!cellW)return;
     grid.querySelectorAll('.pool-cell').forEach(c=>{
       c.style.width=cellW+'px';
