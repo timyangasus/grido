@@ -58,10 +58,10 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .iBtn svg{width:24px;height:24px}
 .acount{flex:1;font-size:11px;color:var(--t1);font-weight:500;text-align:center}
 .layout-bar{display:flex;align-items:center;padding:8px 20px 0;background:var(--s1);}
-.lgrid{display:flex;flex-wrap:wrap;gap:12px;padding:12px 16px;}
+.lgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:10px 12px;}
 .lthumb{cursor:pointer;opacity:.4;transition:opacity .12s}
 .lthumb.on{opacity:1}
-.lthumb canvas{display:block}
+.lthumb canvas{display:block;width:100% !important;height:auto !important;aspect-ratio:1;}
 
 .rpanel{padding:12px 16px 10px}
 .rrow{display:flex;gap:8px}
@@ -212,6 +212,11 @@ const ALL_LAYOUTS=[
   {n:6,f:[{x:0,y:0,w:_t,h:_h},{x:_t,y:0,w:_t,h:_h},{x:_t*2,y:0,w:_t,h:_h},{x:0,y:_h,w:_t,h:_h},{x:_t,y:_h,w:_t,h:_h},{x:_t*2,y:_h,w:_t,h:_h}]},
   {n:7,f:[{x:0,y:0,w:1,h:_t},{x:0,y:_t,w:_t,h:_t},{x:_t,y:_t,w:_t,h:_t},{x:_t*2,y:_t,w:_t,h:_t},{x:0,y:_t*2,w:_t,h:_t},{x:_t,y:_t*2,w:_t,h:_t},{x:_t*2,y:_t*2,w:_t,h:_t}]},
   {n:7,f:[{x:0,y:0,w:_h,h:_t},{x:0,y:_t,w:_h,h:_t},{x:0,y:_t*2,w:_h,h:_t},{x:_h,y:0,w:_h,h:_q},{x:_h,y:_q,w:_h,h:_q},{x:_h,y:_q*2,w:_h,h:_q},{x:_h,y:_q*3,w:_h,h:_q}]},
+  {n:7,f:[{x:0,y:0,w:_h,h:_t},{x:_h,y:0,w:_h,h:_t},{x:0,y:_t,w:_h,h:_t},{x:_h,y:_t,w:_h,h:_t},{x:0,y:_t*2,w:_t,h:_t},{x:_t,y:_t*2,w:_t,h:_t},{x:_t*2,y:_t*2,w:_t,h:_t}]},
+  {n:7,f:[{x:0,y:0,w:2/3,h:_t},{x:2/3,y:0,w:1/3,h:_t},{x:0,y:_t,w:_t,h:_t},{x:_t,y:_t,w:_t,h:_t},{x:_t*2,y:_t,w:_t,h:_t},{x:0,y:_t*2,w:2/3,h:_t},{x:2/3,y:_t*2,w:1/3,h:_t}]},
+  {n:6,f:[{x:0,y:0,w:_h,h:_t},{x:_h,y:0,w:_h,h:_t},{x:0,y:_t,w:1,h:_t},{x:0,y:_t*2,w:_t,h:_t},{x:_t,y:_t*2,w:_t,h:_t},{x:_t*2,y:_t*2,w:_t,h:_t}]},
+  {n:7,f:[{x:0,y:0,w:_t,h:_t},{x:_t,y:0,w:_t,h:_t},{x:_t*2,y:0,w:_t,h:_t},{x:0,y:_t,w:2/3,h:_t},{x:2/3,y:_t,w:1/3,h:_t},{x:0,y:_t*2,w:1/3,h:_t},{x:1/3,y:_t*2,w:2/3,h:_t}]},
+  {n:7,f:[{x:0,y:0,w:_h,h:_t},{x:_h,y:0,w:_h,h:_t},{x:0,y:_t,w:1/3,h:_t},{x:1/3,y:_t,w:2/3,h:_t},{x:0,y:_t*2,w:_t,h:_t},{x:_t,y:_t*2,w:_t,h:_t},{x:_t*2,y:_t*2,w:_t,h:_t}]},
   {n:8,f:[{x:0,y:0,w:_h,h:_q},{x:0,y:_q,w:_h,h:_q},{x:0,y:_q*2,w:_h,h:_q},{x:0,y:_q*3,w:_h,h:_q},{x:_h,y:0,w:_h,h:_q},{x:_h,y:_q,w:_h,h:_q},{x:_h,y:_q*2,w:_h,h:_q},{x:_h,y:_q*3,w:_h,h:_q}]},
   {n:8,f:[{x:0,y:0,w:_q,h:_h},{x:_q,y:0,w:_q,h:_h},{x:_q*2,y:0,w:_q,h:_h},{x:_q*3,y:0,w:_q,h:_h},{x:0,y:_h,w:_q,h:_h},{x:_q,y:_h,w:_q,h:_h},{x:_q*2,y:_h,w:_q,h:_h},{x:_q*3,y:_h,w:_q,h:_h}]},
   {n:8,f:[{x:0,y:0,w:2/3,h:_t},{x:2/3,y:0,w:1/3,h:_t},{x:0,y:_t,w:_t,h:_t},{x:_t,y:_t,w:_t,h:_t},{x:_t*2,y:_t,w:_t,h:_t},{x:0,y:_t*2,w:_t,h:_t},{x:_t,y:_t*2,w:_t,h:_t},{x:_t*2,y:_t*2,w:_t,h:_t}]},
@@ -500,12 +505,12 @@ function renderThumbGrid(){
     const wrap=document.createElement('div');
     const isOn=idx===st.layoutIdx;
     wrap.className='lthumb'+(isOn?' on':'');
-    const TSIZE=72;const dpr=window.devicePixelRatio||1;
-    const tc=document.createElement('canvas');tc.width=TSIZE*dpr;tc.height=TSIZE*dpr;tc.style.width=TSIZE+'px';tc.style.height=TSIZE+'px';
+    const TSIZE=64;const dpr=window.devicePixelRatio||1;
+    const tc=document.createElement('canvas');tc.width=TSIZE*dpr;tc.height=TSIZE*dpr;tc.style.cssText='display:block;width:100%;height:auto;';
     const tctx=tc.getContext('2d');tctx.scale(dpr,dpr);
     tctx.globalAlpha=isOn?0.9:0.45;
     tctx.strokeStyle='#ffffff';
-    drawBorders(tctx,layout.f,TSIZE,TSIZE,1);
+    drawBorders(tctx,layout.f,TSIZE,TSIZE,0.5);
     tctx.globalAlpha=1;
     wrap.appendChild(tc);
     wrap.addEventListener('click',()=>{
@@ -857,12 +862,12 @@ function renderThumbGridDrop(){
     const wrap=document.createElement('div');
     const isOn=idx===st.layoutIdx;
     wrap.className='lthumb'+(isOn?' on':'');
-    const TSIZE=72;const dpr=window.devicePixelRatio||1;
-    const tc=document.createElement('canvas');tc.width=TSIZE*dpr;tc.height=TSIZE*dpr;tc.style.width=TSIZE+'px';tc.style.height=TSIZE+'px';
+    const TSIZE=64;const dpr=window.devicePixelRatio||1;
+    const tc=document.createElement('canvas');tc.width=TSIZE*dpr;tc.height=TSIZE*dpr;tc.style.cssText='display:block;width:100%;height:auto;';
     const tctx=tc.getContext('2d');tctx.scale(dpr,dpr);
     tctx.globalAlpha=isOn?0.9:0.45;
     tctx.strokeStyle='#ffffff';
-    drawBorders(tctx,layout.f,TSIZE,TSIZE,1);
+    drawBorders(tctx,layout.f,TSIZE,TSIZE,0.5);
     tctx.globalAlpha=1;
     wrap.appendChild(tc);
     wrap.addEventListener('click',()=>{
