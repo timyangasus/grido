@@ -565,7 +565,7 @@ function renderThumbGrid(){
       st.transforms=newPhotos.map((_,i)=>oldTransforms[i]||{sc:1,ox:0,oy:0});
       st.layoutIdx=idx;
       st.selCell=null;
-      showCanvas();render();renderThumbGrid();updateAlbumUI();
+      showCanvas();render();renderThumbGrid();updateAlbumUI();renderCardIndicator();
     });
     grid.appendChild(wrap);
   });
@@ -819,7 +819,7 @@ function setupAddInput(id){
         const padded=[...merged,...new Array(Math.max(0,target-merged.length)).fill(null)];
         st.photos=padded.slice(0,target);
         st.transforms=st.photos.map((_,i)=>st.transforms[i]||{sc:1,ox:0,oy:0});
-        showCanvas();render();renderThumbGrid();updateAlbumUI();
+        showCanvas();render();renderThumbGrid();updateAlbumUI();renderCardIndicator();
       }).catch(()=>{});
     }
   });
