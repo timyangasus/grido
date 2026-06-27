@@ -239,10 +239,9 @@ function renderCellOverlays(){
   const overlays=document.getElementById('cellOverlays');
   if(!overlays||st.layoutIdx===null)return;
   const layout=ALL_LAYOUTS[st.layoutIdx];
-  // restore fpl to body if it was moved
   const fplInp=document.getElementById('fpl');
-  if(fplInp.parentNode!==document.body) document.body.appendChild(fplInp);
-  fplInp.style.cssText='position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px;top:-9999px';
+  // detach fpl from wherever it is
+  if(fplInp.parentNode) fplInp.parentNode.removeChild(fplInp);
   overlays.innerHTML='';
   const activeTab=document.querySelector('.tabbtn.on')?.dataset.tab;
   if(activeTab==='Album'){overlays.style.pointerEvents='none';return;}
@@ -251,42 +250,36 @@ function renderCellOverlays(){
   const previewRect=previewEl.getBoundingClientRect();
   const scaleX=cvRect.width/cvs.width;
   const scaleY=cvRect.height/cvs.height;
-  let firstNull=true;
+  // Each null cell gets a positioned <label> wrapping nothing visible
+  // fpl is repositioned on pointerdown to match the tapped cell
   layout.f.forEach((f,i)=>{
     if(st.photos[i]!==null)return;
     const left=cvRect.left-previewRect.left+f.x*cvs.width*scaleX;
     const top=cvRect.top-previewRect.top+f.y*cvs.height*scaleY;
     const w=f.w*cvs.width*scaleX;
     const h=f.h*cvs.height*scaleY;
-    if(firstNull){
-      // Place the actual input (with multiple) directly over first null cell
+    const div=document.createElement('div');
+    div.style.cssText='position:absolute;z-index:3;cursor:pointer;-webkit-tap-highlight-color:transparent;';
+    div.style.left=left+'px';div.style.top=top+'px';
+    div.style.width=w+'px';div.style.height=h+'px';
+    // On pointerdown: record cell and snap fpl to this exact position
+    div.addEventListener('pointerdown',()=>{
+      st.repCell=i;
+      if(fplInp.parentNode) fplInp.parentNode.removeChild(fplInp);
       fplInp.style.cssText=[
-        'position:absolute',
-        'left:'+left+'px',
-        'top:'+top+'px',
+        'position:fixed',
+        'left:'+( cvRect.left + f.x*cvs.width*scaleX )+'px',
+        'top:'+( cvRect.top + f.y*cvs.height*scaleY )+'px',
         'width:'+w+'px',
         'height:'+h+'px',
         'opacity:0',
+        'z-index:10',
         'cursor:pointer',
-        'z-index:4',
         'font-size:16px',
       ].join(';');
-      fplInp.addEventListener('pointerdown',function onpd(){
-        st.repCell=i;
-        fplInp.removeEventListener('pointerdown',onpd);
-      },{once:true});
-      overlays.appendChild(fplInp);
-      firstNull=false;
-    } else {
-      // Other null cells: transparent div that triggers fpl click
-      const div=document.createElement('div');
-      div.style.cssText='position:absolute;z-index:3;cursor:pointer;';
-      div.style.left=left+'px';div.style.top=top+'px';
-      div.style.width=w+'px';div.style.height=h+'px';
-      div.addEventListener('pointerdown',()=>{st.repCell=i;});
-      div.addEventListener('click',()=>fplInp.click());
-      overlays.appendChild(div);
-    }
+      document.body.appendChild(fplInp);
+    },{passive:true});
+    overlays.appendChild(div);
   });
   overlays.style.pointerEvents=overlays.children.length>0?'auto':'none';
 }
@@ -477,6 +470,8 @@ setupAddInput();
   inp.addEventListener('change',function(){
     if(_lock)return;
     const files=Array.from(this.files);
+    // return fpl to hidden state
+    this.style.cssText='position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px;top:-9999px';
     _lock=true;
     const self=this;
     setTimeout(()=>{try{self.value='';}catch(e){}_lock=false;},100);
@@ -628,19 +623,7 @@ document.getElementById('btnCheck').addEventListener('click',()=>{
       }
       const cell=hitCell(p.x,p.y);
       if(cell===null){st.selCell=null;render();gesture=null;return;}
-      if(st.photos[cell]===null){
-        st.repCell=cell;
-        const cvRect=cvs.getBoundingClientRect();
-        const f=ALL_LAYOUTS[st.layoutIdx].f[cell];
-        const scale=cvRect.width/cvs.width;
-        const lbl=document.getElementById('cellFileLabel');
-        lbl.style.display='block';
-        lbl.style.left=(cvRect.left+f.x*cvs.width*scale)+'px';
-        lbl.style.top=(cvRect.top+f.y*cvs.height*scale)+'px';
-        lbl.style.width=(f.w*cvs.width*scale)+'px';
-        lbl.style.height=(f.h*cvs.height*scale)+'px';
-        gesture=null;return;
-      }
+      if(st.photos[cell]===null){gesture=null;return;} // overlay handles null cells
 
       // start long press timer for drag-to-swap
       _longPressTimer=setTimeout(()=>{
@@ -782,30 +765,10 @@ document.getElementById('btnCheck').addEventListener('click',()=>{
     }
     const cell=hitCell(p.x,p.y);
     if(cell===null){st.selCell=null;render();return;}
-    if(st.photos[cell]===null){
-      st.repCell=cell;
-      const cvRect=cvs.getBoundingClientRect();
-      const f=ALL_LAYOUTS[st.layoutIdx].f[cell];
-      const scale=cvRect.width/cvs.width;
-      const lbl=document.getElementById('cellFileLabel');
-      lbl.style.display='block';
-      lbl.style.left=(cvRect.left+f.x*cvs.width*scale)+'px';
-      lbl.style.top=(cvRect.top+f.y*cvs.height*scale)+'px';
-      lbl.style.width=(f.w*cvs.width*scale)+'px';
-      lbl.style.height=(f.h*cvs.height*scale)+'px';
-      return;
-    }
+    if(st.photos[cell]===null){return;} // overlay handles null cells
     if(st.selCell===cell){
       st.repCell=cell;
-      const cvRect2=cvs.getBoundingClientRect();
-      const f2=ALL_LAYOUTS[st.layoutIdx].f[cell];
-      const scale2=cvRect2.width/cvs.width;
-      const lbl2=document.getElementById('cellFileLabel');
-      lbl2.style.display='block';
-      lbl2.style.left=(cvRect2.left+f2.x*cvs.width*scale2)+'px';
-      lbl2.style.top=(cvRect2.top+f2.y*cvs.height*scale2)+'px';
-      lbl2.style.width=(f2.w*cvs.width*scale2)+'px';
-      lbl2.style.height=(f2.h*cvs.height*scale2)+'px';
+      document.getElementById('fr').click(); // desktop fallback; touch uses long-press
     }
     else{st.selCell=cell;render();}
   });
@@ -819,7 +782,6 @@ document.getElementById('btnCheck').addEventListener('click',()=>{
 // ── Replace single cell ───────────────────────────────────────────────────────
 document.getElementById('fr').addEventListener('change',function(){
   const f=this.files[0];this.value='';
-  document.getElementById('cellFileLabel').style.display='none';
   if(!f||st.repCell===null)return;
   const cell=st.repCell;st.repCell=null;
   loadImg(f).then(img=>{
