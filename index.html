@@ -86,6 +86,7 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .border-cell .del-btn{position:absolute;top:4px;right:4px;width:22px;height:22px;background:rgba(0,0,0,0.7);border-radius:50%;border:none;color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:1}
 .border-bar{flex-shrink:0;display:flex;align-items:center;padding:10px 20px;gap:10px;background:var(--s1);border-top:.5px solid var(--bd)}
 .pill-btn{background:#000;color:#fff;border:none;border-radius:999px;padding:11px 28px;font-size:14px;font-weight:500;cursor:pointer;margin-left:auto;-webkit-tap-highlight-color:transparent;}
+#btnCardDone{width:44px;height:44px;padding:0;font-size:16px;font-weight:700;border-radius:50%;}
 .pill-btn.dim{opacity:.3;}
 .pill-btn:active{opacity:.7}
 .pill-btn.done{background:#007AFF;color:#fff;}
@@ -363,25 +364,24 @@ function renderCardIndicator(){
   // next arrow updated after done state is resolved (below)
   const btn=document.getElementById('btnCardDone');
   if(btn){
-    if(cards[cardIdx].done){
-      btn.textContent='✓ 已完成';
-      btn.classList.add('done');
-      btn.classList.remove('dim');
-    } else {
-      btn.textContent=`完成 (${cardIdx+1}/${cards.length})`;
-      btn.classList.remove('done');
-      const photos=cards[cardIdx].photos;
-      const hasPhoto=photos.some(p=>p!==null);
-      const layoutFull=st.layoutIdx!==null&&photos.filter(p=>p!==null).length>=ALL_LAYOUTS[st.layoutIdx].n;
-      if(layoutFull&&!cards[cardIdx].done){
-        cards[cardIdx].done=true;
-        btn.textContent='✓ 已完成';
-        btn.classList.add('done');
-        btn.classList.remove('dim');
-      } else {
-        btn.classList.toggle('dim',!hasPhoto);
-      }
+    const photos=cards[cardIdx].photos;
+    const hasPhoto=photos.some(p=>p!==null);
+    const layoutFull=st.layoutIdx!==null&&photos.filter(p=>p!==null).length>=ALL_LAYOUTS[st.layoutIdx].n;
+    if(layoutFull&&!cards[cardIdx].done){
+      cards[cardIdx].done=true;
     }
+    btn.textContent=cardIdx+1;
+    if(cards[cardIdx].done){
+      btn.style.background='#007AFF';
+      btn.style.color='#fff';
+    } else if(hasPhoto){
+      btn.style.background='#007AFF';
+      btn.style.color='#fff';
+    } else {
+      btn.style.background='#2C2C2E';
+      btn.style.color='#636366';
+    }
+    btn.classList.remove('done','dim');
   }
   // update next arrow after done state resolved
   if(next) next.style.opacity=(cards[cardIdx].done||cardIdx<cards.length-1)?'1':'0.2';
@@ -395,10 +395,9 @@ function renderCardIndicator(){
 
 function cardToggleDone(){
   const hasPhoto=cards[cardIdx].photos.some(p=>p!==null);
-  if(!hasPhoto&&!cards[cardIdx].done){showToast('請先加入照片');return;}
+  if(!hasPhoto){showToast('請先加入照片');return;}
   cards[cardIdx].done=!cards[cardIdx].done;
   renderCardIndicator();
-  // no auto-jump — user uses arrow to go to next card
 }
 
 // pool used = any card uses that photo
