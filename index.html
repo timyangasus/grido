@@ -84,7 +84,7 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .border-cell{position:relative;flex:0 0 calc(50% - 3px);aspect-ratio:1;background:#fff;overflow:hidden;}
 .border-cell img{width:100%;height:100%;object-fit:contain;display:block}
 .border-cell .del-btn{position:absolute;top:4px;right:4px;width:22px;height:22px;background:rgba(0,0,0,0.7);border-radius:50%;border:none;color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:1}
-.border-bar{flex-shrink:0;display:flex;align-items:center;padding:10px 20px;gap:10px;background:var(--s1);border-top:.5px solid var(--bd)}
+.border-bar{flex-shrink:0;display:flex;align-items:center;padding:10px 20px;gap:24px;background:var(--s1);border-top:.5px solid var(--bd)}
 .pill-btn{background:#000;color:#fff;border:none;border-radius:999px;padding:11px 28px;font-size:14px;font-weight:500;cursor:pointer;margin-left:auto;-webkit-tap-highlight-color:transparent;}
 #btnCardDone{width:28px;height:28px;padding:0;font-size:10px;font-weight:700;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
 .pill-btn.dim{opacity:.3;}
@@ -145,7 +145,7 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
         <div style="display:flex;align-items:center;gap:32px;">
           <label class="iBtn" style="cursor:pointer">
             <input type="file" id="fp2" accept="image/*" multiple class="real-file-input">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" width="20" height="20" fill="currentColor" style="opacity:0.8"><path d="M520-400h80v-120h120v-80H600v-120h-80v120H400v80h120v120ZM320-240q-33 0-56.5-23.5T240-320v-480q0-33 23.5-56.5T320-880h480q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H320Zm0-80h480v-480H320v480ZM160-80q-33 0-56.5-23.5T80-160v-560h80v560h560v80H160Zm160-720v480-480Z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" width="24" height="24" fill="currentColor"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
           </label>
           <button id="btnNextCard" style="font-size:24px;width:40px;height:40px;background:rgba(0,0,0,0.6);border-radius:50%;color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;">›</button>
         </div>
@@ -177,12 +177,12 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
       <div class="border-bar" id="borderBar" style="display:none">
         <label class="iBtn" style="cursor:pointer">
           <input type="file" id="fb2" accept="image/*" multiple class="real-file-input">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" width="24" height="24" fill="currentColor"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
         </label>
         <button class="iBtn" id="btnDelBorder">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" width="24" height="24" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
         </button>
-        <button class="pill-btn" id="btnExportBorder">匯出</button>
+        <button class="iBtn" id="btnExportBorder" style="background:#000;border-radius:50%;width:40px;height:40px;margin-left:auto;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" width="22" height="22" fill="#fff"><path d="M240-80q-33 0-56.5-23.5T160-160v-400q0-33 23.5-56.5T240-640h120v80H240v400h480v-400H600v-80h120q33 0 56.5 23.5T800-560v400q0 33-23.5 56.5T720-80H240Zm200-240v-447l-64 64-56-57 160-160 160 160-56 57-64-64v447h-80Z"/></svg></button>
       </div>
     </div>
     <div class="toast" id="toast"></div>
