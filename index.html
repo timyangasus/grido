@@ -25,9 +25,9 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .nav-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.4);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:49;display:none;}
 .nav-backdrop.on{display:block;}
 @keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
-.nav-icon{background:none;border:none;color:var(--t1);cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+.nav-icon{background:none;border:none;color:var(--w);cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%}
 .nav-icon:active{background:var(--s2)}
-.nav-icon svg{width:24px;height:24px}
+.nav-icon svg{width:24px;height:24px;opacity:0.8;}
 .nav-icon.dim{opacity:.2;pointer-events:none}
 .preview{flex:1;display:flex;align-items:center;justify-content:center;background:var(--bg);overflow:hidden;padding:16px 20px;position:relative;min-height:0}
 .preview.tap{cursor:pointer}
@@ -57,7 +57,7 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .iBtn{background:none;border:none;cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:var(--w)}
 .iBtn:active{background:var(--s2)}
 .iBtn.dim{opacity:.2;pointer-events:none}
-.iBtn svg{display:block}
+.iBtn svg{display:block;opacity:0.8;}
 .acount{flex:1;font-size:11px;color:var(--t1);font-weight:500;text-align:center}
 .layout-bar{display:flex;align-items:center;padding:8px 20px 0;background:var(--s1);}
 .lgrid,#lgridDrop{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:18px;padding:18px 22px;width:100%;box-sizing:border-box;}
