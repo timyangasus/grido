@@ -15,10 +15,10 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .page-container{flex:1;overflow:hidden;display:flex;flex-direction:column;position:relative;min-height:0}
 .nav{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 12px;flex-shrink:0}
 .nav-title{font-size:17px;font-weight:700;letter-spacing:-.5px}
-.nav-icon-btn{background:none;border:none;color:var(--t3);cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;-webkit-tap-highlight-color:transparent;}
+.nav-icon-btn{background:none;border:none;color:var(--w);cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;-webkit-tap-highlight-color:transparent;}
 .nav-icon-btn.on{color:var(--w);}
 .nav-icon-btn:active{background:var(--s2);}
-.nav-icon-btn svg{width:22px;height:22px;}
+.nav-icon-btn svg{width:20px;height:20px;opacity:0.8;}
 .nav-icons{display:flex;align-items:center;gap:10px;}
 .nav-dropdown{position:absolute;top:100%;left:0;right:0;background:var(--s1);border-bottom:.5px solid var(--bd);z-index:50;display:none;animation:slideDown .18s ease;}
 .nav-dropdown.on{display:block;}
@@ -57,7 +57,7 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .iBtn{background:none;border:none;cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:var(--w)}
 .iBtn:active{background:var(--s2)}
 .iBtn.dim{opacity:.2;pointer-events:none}
-.iBtn svg{width:24px;height:24px}
+.iBtn svg{width:20px;height:20px}
 .acount{flex:1;font-size:11px;color:var(--t1);font-weight:500;text-align:center}
 .layout-bar{display:flex;align-items:center;padding:8px 20px 0;background:var(--s1);}
 .lgrid,#lgridDrop{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:18px;padding:18px 22px;width:100%;box-sizing:border-box;}
@@ -99,13 +99,13 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
       <span class="nav-title">Grido</span>
       <div class="nav-icons">
         <button class="nav-icon-btn" id="btnNavLayout">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" width="20" height="20" fill="currentColor"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h240v-560H200v560Zm320 0h240v-280H520v280Zm0-360h240v-200H520v200Z"/></svg>
         </button>
         <button class="nav-icon-btn" id="btnNavRatio">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="10" height="18" rx="2"/><rect x="16" y="6" width="5" height="12" rx="1.5"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" width="20" height="20" fill="currentColor"><path d="M560-280h200v-200h-80v120H560v80ZM200-480h80v-120h120v-80H200v200Zm-40 320q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm0-80h640v-480H160v480Zm0 0v-480 480Z"/></svg>
         </button>
         <button class="nav-icon dim" id="btnExport">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M240-80q-33 0-56.5-23.5T160-160v-400q0-33 23.5-56.5T240-640h120v80H240v400h480v-400H600v-80h120q33 0 56.5 23.5T800-560v400q0 33-23.5 56.5T720-80H240Zm200-240v-447l-64 64-56-57 160-160 160 160-56 57-64-64v447h-80Z"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" width="20" height="20" fill="currentColor"><path d="M240-80q-33 0-56.5-23.5T160-160v-400q0-33 23.5-56.5T240-640h120v80H240v400h480v-400H600v-80h120q33 0 56.5 23.5T800-560v400q0 33-23.5 56.5T720-80H240Zm200-240v-447l-64 64-56-57 160-160 160 160-56 57-64-64v447h-80Z"/></svg>
         </button>
       </div>
       <!-- Dropdown panels inside nav for correct positioning -->
@@ -138,14 +138,14 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
         <div style="display:flex;align-items:center;gap:32px;">
           <button id="btnPrevCard" class="iBtn" style="font-size:24px;width:40px;height:40px;background:rgba(0,0,0,0.6);border-radius:50%;color:#fff;">‹</button>
           <button class="iBtn dim" id="btnPoolClear">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-272h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" width="20" height="20" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
           </button>
         </div>
         <button class="pill-btn" id="btnCardDone" style="margin:0 auto;">1</button>
         <div style="display:flex;align-items:center;gap:32px;">
           <label class="iBtn" style="cursor:pointer">
             <input type="file" id="fp2" accept="image/*" multiple class="real-file-input">
-            <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="currentColor" style="opacity:0.8"><path d="M520-400h80v-120h120v-80H600v-120h-80v120H400v80h120v120ZM320-240q-33 0-56.5-23.5T240-320v-480q0-33 23.5-56.5T320-880h480q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H320Zm0-80h480v-480H320v480ZM160-80q-33 0-56.5-23.5T80-160v-560h80v560h560v80H160Zm160-720v480-480Z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" width="20" height="20" fill="currentColor" style="opacity:0.8"><path d="M520-400h80v-120h120v-80H600v-120h-80v120H400v80h120v120ZM320-240q-33 0-56.5-23.5T240-320v-480q0-33 23.5-56.5T320-880h480q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H320Zm0-80h480v-480H320v480ZM160-80q-33 0-56.5-23.5T80-160v-560h80v560h560v80H160Zm160-720v480-480Z"/></svg>
           </label>
           <button id="btnNextCard" class="iBtn" style="font-size:24px;width:40px;height:40px;background:rgba(0,0,0,0.6);border-radius:50%;color:#fff;">›</button>
         </div>
@@ -180,7 +180,7 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
         </label>
         <button class="iBtn" id="btnDelBorder">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-272h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" width="20" height="20" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
         </button>
         <button class="pill-btn" id="btnExportBorder">匯出</button>
       </div>
@@ -192,7 +192,7 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>相冊
     </button>
     <button class="tabbtn" data-tab="Border">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="6" y="6" width="12" height="12" rx="1"/></svg>白框
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" width="21" height="21"><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="6" y="6" width="12" height="12" rx="1"/></svg>白框
     </button>
   </div>
 </div>
