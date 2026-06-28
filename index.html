@@ -145,7 +145,7 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
         <div style="display:flex;align-items:center;gap:32px;">
           <label class="iBtn" style="cursor:pointer">
             <input type="file" id="fp2" accept="image/*" multiple class="real-file-input">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" width="24" height="24" fill="currentColor"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" width="20" height="20" fill="currentColor" style="opacity:0.8"><path d="M520-400h80v-120h120v-80H600v-120h-80v120H400v80h120v120ZM320-240q-33 0-56.5-23.5T240-320v-480q0-33 23.5-56.5T320-880h480q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H320Zm0-80h480v-480H320v480ZM160-80q-33 0-56.5-23.5T80-160v-560h80v560h560v80H160Zm160-720v480-480Z"/></svg>
           </label>
           <button id="btnNextCard" style="font-size:24px;width:40px;height:40px;background:rgba(0,0,0,0.6);border-radius:50%;color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;">›</button>
         </div>
@@ -1003,9 +1003,10 @@ document.getElementById('btnPoolClear').addEventListener('click',()=>{
   function doReset(resetCanvas,resetPool){
     if(resetCanvas){
       cards.length=0;cards.push(makeCard());cardIdx=0;st.selCell=null;st.repCell=null;
-      hideCanvas();renderCardIndicator();updateAlbumUI();
+      hideCanvas();updateAlbumUI();
     }
     if(resetPool){pool.length=0;poolRender();}
+    renderCardIndicator();
   }
 
   const options=[
