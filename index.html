@@ -245,9 +245,9 @@ function closeDropdowns(){
 // ── Cards state ──────────────────────────────────────────────────────────────
 function makeCard(){
   return {
-    photos: new Array(1).fill(null),
-    transforms: new Array(1).fill(null).map(()=>({sc:1,ox:0,oy:0})),
-    layoutIdx: ALL_LAYOUTS.findIndex(l=>l.n===1),
+    photos: [],
+    transforms: [],
+    layoutIdx: null,
     done: false
   };
 }
@@ -353,8 +353,28 @@ function swapCells(a, b){
 function switchCard(idx){
   st.selCell=null;
   st.repCell=null;
-  cardIdx=Math.max(0,Math.min(cards.length-1,idx));
-  showCanvas();
+  // remove empty cards (no photos), keep at least one
+  const hasContent=cards.map(c=>c.photos.some(p=>p!==null));
+  // filter out empties except if all are empty keep first
+  const nonEmpty=cards.filter(c=>c.photos.some(p=>p!==null));
+  if(nonEmpty.length===0){
+    cards.length=0;cards.push(makeCard());cardIdx=0;
+    hideCanvas();renderCardIndicator();updateAlbumUI();return;
+  } else {
+    // replace cards array with only non-empty
+    cards.length=0;nonEmpty.forEach(c=>cards.push(c));
+    cardIdx=Math.max(0,Math.min(cards.length-1,idx));
+    // add one empty card at end if last card has photos (for next page)
+    if(cards[cards.length-1].photos.some(p=>p!==null)){
+      cards.push(makeCard());
+    }
+    cardIdx=Math.max(0,Math.min(cards.length-1,idx));
+  }
+  if(cards[cardIdx].photos.some(p=>p!==null)){
+    showCanvas();
+  } else {
+    hideCanvas();
+  }
   renderCardIndicator();
   poolSyncUsedFast();
   updateAlbumUI();
@@ -374,7 +394,12 @@ function renderCardIndicator(){
     if(layoutFull&&!cards[cardIdx].done){
       cards[cardIdx].done=true;
     }
-    btn.textContent=cardIdx+1;
+    // show position among meaningful pages
+    const nonEmptyCount=cards.filter(c=>c.photos.some(p=>p!==null)).length;
+    const displayNum=cards[cardIdx].photos.some(p=>p!==null)
+      ? cards.slice(0,cardIdx+1).filter(c=>c.photos.some(p=>p!==null)).length
+      : nonEmptyCount+1;
+    btn.textContent=displayNum;
     if(hasPhoto){
       btn.style.background='#007AFF';
       btn.style.color='#fff';
@@ -841,8 +866,9 @@ document.getElementById('btnPrevCard').addEventListener('click',()=>{
   if(cardIdx>0) switchCard(cardIdx-1);
 });
 document.getElementById('btnNextCard').addEventListener('click',()=>{
+  const hasPhoto=cards[cardIdx].photos.some(p=>p!==null);
+  if(!hasPhoto) return; // can't go next if current is empty
   if(cardIdx===cards.length-1){
-    // only create new card if current is done
     if(!cards[cardIdx].done) return;
     cards.push(makeCard());
   }
@@ -1332,7 +1358,7 @@ window.addEventListener('resize',()=>{if(st.layoutIdx!==null)render();fixPoolCel
 
 
 // init card UI
-showCanvas();render();renderCardIndicator();
+hideCanvas();renderCardIndicator();
 
 // ── White Border Feature ──────────────────────────────────────────────────────
 const bst={photos:[],selected:null}; // border state
