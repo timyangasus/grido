@@ -1362,7 +1362,7 @@ document.getElementById('btnExport').addEventListener('click',async()=>{
         ectx.drawImage(img,dx,dy,sw,sh);ectx.restore();
       }else{ectx.fillStyle='#2C2C2E';ectx.fillRect(r.x,r.y,r.w,r.h);}
     });
-    ectx.strokeStyle='#ffffff';drawBorders(ectx,layout.f,W,H,6);
+    ectx.strokeStyle='#ffffff';drawBorders(ectx,layout.f,W,H,Math.round(W*0.001));
     const blob=await new Promise(res=>ec.toBlob(res,'image/jpeg',0.95));
     if(blob) filesToExport.push(new File([blob],'grido_'+(ci+1)+'.jpg',{type:'image/jpeg'}));
   }
