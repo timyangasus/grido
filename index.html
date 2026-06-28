@@ -19,7 +19,7 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .nav-icon-btn.on{color:var(--w);}
 .nav-icon-btn:active{background:var(--s2);}
 .nav-icon-btn svg{width:24px;height:24px;opacity:0.8;}
-.nav-icons{display:flex;align-items:center;gap:10px;}
+.nav-icons{display:flex;align-items:center;gap:20px;}
 .nav-dropdown{position:absolute;top:100%;left:0;right:0;background:var(--s1);border-bottom:.5px solid var(--bd);z-index:50;display:none;animation:slideDown .18s ease;}
 .nav-dropdown.on{display:block;}
 .nav-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.4);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:49;display:none;}
@@ -27,7 +27,7 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 @keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
 .nav-icon{background:none;border:none;color:var(--t1);cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%}
 .nav-icon:active{background:var(--s2)}
-.nav-icon svg{width:22px;height:22px}
+.nav-icon svg{width:24px;height:24px}
 .nav-icon.dim{opacity:.2;pointer-events:none}
 .preview{flex:1;display:flex;align-items:center;justify-content:center;background:var(--bg);overflow:hidden;padding:16px 20px;position:relative;min-height:0}
 .preview.tap{cursor:pointer}
