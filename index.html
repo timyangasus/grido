@@ -864,6 +864,7 @@ function setupAddInput(id){
         loadImg(file).then(img=>{
           pool.push({img,used:false,key});
           poolRender();
+          renderCardIndicator();
           loaded++;
           if(loaded===total) showToast('已匯入 '+(total-skipped)+' 張');
         }).catch(()=>{loaded++;if(loaded===total)showToast('已匯入 '+(total-skipped)+' 張');});
