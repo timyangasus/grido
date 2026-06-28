@@ -854,11 +854,20 @@ function setupAddInput(id){
     setTimeout(()=>{ try{self.value='';}catch(e){} _addLock=false; },100);
     const currentTabNow=document.querySelector('.tabbtn.on')?.dataset.tab;
     if(currentTabNow==='Album' && id==='fp2'){
-      // fp2 (+button): load into pool
-      const filesCopy=files.slice();
-      Promise.all(files.map(loadImg)).then(imgs=>{
-        poolAddImgs(imgs, filesCopy);
-      }).catch(()=>{});
+      // fp2: stream photos into pool one by one as they load
+      let loaded=0;
+      let skipped=0;
+      const total=files.length;
+      files.forEach((file)=>{
+        const key=file.name+'|'+file.size;
+        if(pool.some(p=>p.key===key)){skipped++;loaded++;if(loaded===total)showToast('已匯入 '+(total-skipped)+' 張');return;}
+        loadImg(file).then(img=>{
+          pool.push({img,used:false,key});
+          poolRender();
+          loaded++;
+          if(loaded===total) showToast('已匯入 '+(total-skipped)+' 張');
+        }).catch(()=>{loaded++;if(loaded===total)showToast('已匯入 '+(total-skipped)+' 張');});
+      });
     } else {
       // fp: fill canvas directly, auto-expand layout 1→2→...→9
       const filled=before.length;
@@ -1443,20 +1452,23 @@ function bRenderGrid(){
     inp.addEventListener('change',function(){
       if(_lock)return;
       const files=Array.from(this.files);
-      const before=bst.photos.slice();
       _lock=true;
       const self=this;
       setTimeout(()=>{try{self.value='';}catch(e){}_lock=false;},100);
       if(!files.length)return;
-      Promise.all(files.map(f=>new Promise((res,rej)=>{
+      // stream: add each photo as it loads
+      files.forEach(file=>{
         const r=new FileReader();
-        r.onerror=rej;
-        r.onload=ev=>{const i=new Image();i.onerror=rej;i.onload=()=>res(i);i.src=ev.target.result;};
-        r.readAsDataURL(f);
-      }))).then(imgs=>{
-        bst.photos=[...before,...imgs];
-        bRenderGrid();bUpdateUI();
-      }).catch(()=>{});
+        r.onload=ev=>{
+          const img=new Image();
+          img.onload=()=>{
+            bst.photos.push(img);
+            bRenderGrid();bUpdateUI();
+          };
+          img.src=ev.target.result;
+        };
+        r.readAsDataURL(file);
+      });
     });
   }
   setupFb('fb');
