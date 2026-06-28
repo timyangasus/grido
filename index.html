@@ -135,17 +135,17 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
       </div>
       <!-- Bottom: pool bar (arrows + delete + add + done) -->
       <div class="pool-bar" style="justify-content:space-between;">
-        <div style="display:flex;align-items:center;gap:6px;">
+        <div style="display:flex;align-items:center;gap:32px;">
           <button id="btnPrevCard" class="iBtn" style="font-size:24px;width:40px;height:40px;background:rgba(0,0,0,0.6);border-radius:50%;color:#fff;">‹</button>
           <button class="iBtn dim" id="btnPoolClear">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-272h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
           </button>
         </div>
         <button class="pill-btn" id="btnCardDone" style="margin:0 auto;">1</button>
-        <div style="display:flex;align-items:center;gap:6px;">
+        <div style="display:flex;align-items:center;gap:32px;">
           <label class="iBtn" style="cursor:pointer">
             <input type="file" id="fp2" accept="image/*" multiple class="real-file-input">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M520-400h80v-120h120v-80H600v-120h-80v120H400v80h120v120ZM320-240q-33 0-56.5-23.5T240-320v-480q0-33 23.5-56.5T320-880h480q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H320Zm0-80h480v-480H320v480ZM160-80q-33 0-56.5-23.5T80-160v-560h80v560h560v80H160Zm160-720v480-480Z"/></svg>
           </label>
           <button id="btnNextCard" class="iBtn" style="font-size:24px;width:40px;height:40px;background:rgba(0,0,0,0.6);border-radius:50%;color:#fff;">›</button>
         </div>
@@ -384,8 +384,7 @@ function switchCard(idx){
 function renderCardIndicator(){
   const prev=document.getElementById('btnPrevCard');
   const next=document.getElementById('btnNextCard');
-  if(prev) prev.style.opacity=cardIdx>0?'1':'0.2';
-  // next arrow updated after done state is resolved (below)
+  // arrows updated below after done state resolved
   const btn=document.getElementById('btnCardDone');
   if(btn){
     const photos=cards[cardIdx].photos;
@@ -410,7 +409,11 @@ function renderCardIndicator(){
     btn.classList.remove('done','dim');
   }
   // update next arrow after done state resolved
-  if(next) next.style.opacity=(cards[cardIdx].done||cardIdx<cards.length-1)?'1':'0.2';
+  // arrow visibility based on photos
+  const curHasPhoto=cards[cardIdx].photos.some(p=>p!==null);
+  const prevHasPhoto=cardIdx>0&&cards[cardIdx-1].photos.some(p=>p!==null);
+  if(prev) prev.style.opacity=prevHasPhoto?'1':'0.2';
+  if(next) next.style.opacity=curHasPhoto?'1':'0.2';
   // sync delete button
   const clearBtn=document.getElementById('btnPoolClear');
   if(clearBtn){
