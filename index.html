@@ -145,7 +145,7 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
         <div style="display:flex;align-items:center;gap:32px;">
           <label class="iBtn" style="cursor:pointer">
             <input type="file" id="fp2" accept="image/*" multiple class="real-file-input">
-            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M520-400h80v-120h120v-80H600v-120h-80v120H400v80h120v120ZM320-240q-33 0-56.5-23.5T240-320v-480q0-33 23.5-56.5T320-880h480q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H320Zm0-80h480v-480H320v480ZM160-80q-33 0-56.5-23.5T80-160v-560h80v560h560v80H160Zm160-720v480-480Z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="currentColor" style="opacity:0.8"><path d="M520-400h80v-120h120v-80H600v-120h-80v120H400v80h120v120ZM320-240q-33 0-56.5-23.5T240-320v-480q0-33 23.5-56.5T320-880h480q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H320Zm0-80h480v-480H320v480ZM160-80q-33 0-56.5-23.5T80-160v-560h80v560h560v80H160Zm160-720v480-480Z"/></svg>
           </label>
           <button id="btnNextCard" class="iBtn" style="font-size:24px;width:40px;height:40px;background:rgba(0,0,0,0.6);border-radius:50%;color:#fff;">›</button>
         </div>
@@ -976,8 +976,8 @@ document.getElementById('btnPoolClear').addEventListener('click',()=>{
   }
 
   const options=[
-    {label:'刪除版型全部',action:'canvas'},
-    {label:'刪除縮圖全部',action:'pool'},
+    {label:'刪除全部版型',action:'canvas'},
+    {label:'刪除全部縮圖',action:'pool'},
     {label:'全部',action:'all'},
     {label:'取消',action:'cancel'},
   ];
@@ -988,7 +988,7 @@ document.getElementById('btnPoolClear').addEventListener('click',()=>{
   options.forEach(opt=>{
     const btn=document.createElement('button');
     btn.textContent=opt.label;
-    btn.style.cssText='display:block;width:100%;padding:16px;background:none;border:none;border-top:.5px solid #3A3A3C;font-size:17px;cursor:pointer;color:'+(opt.action==='cancel'?'#fff':'#FF453A')+';';
+    btn.style.cssText='display:block;width:100%;padding:16px;background:none;border:none;border-top:.5px solid #3A3A3C;font-size:17px;cursor:pointer;color:#fff;';
     btn.addEventListener('click',()=>{
       document.body.removeChild(sheet);
       if(opt.action==='canvas') doReset(true,false);
