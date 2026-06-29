@@ -1352,9 +1352,22 @@ document.querySelectorAll('.rbtn').forEach(b=>b.addEventListener('click',()=>{
 document.getElementById('btnExport').addEventListener('click',async()=>{
   const doneCards=cards.filter(c=>c.done&&c.photos.some(p=>p!==null));
   if(!doneCards.length){showToast('沒有完成的拼圖');return;}
-  showToast('處理中...');
+  // Show processing overlay
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.7);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;';
+  const spinner=document.createElement('div');
+  spinner.style.cssText='width:40px;height:40px;border:3px solid rgba(255,255,255,0.2);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;';
+  const style=document.createElement('style');
+  style.textContent='@keyframes spin{to{transform:rotate(360deg)}}';
+  document.head.appendChild(style);
+  const label=document.createElement('div');
+  label.style.cssText='color:#fff;font-size:15px;font-weight:500;';
+  label.textContent='正在處理 0 / '+doneCards.length+' 張...';
+  overlay.appendChild(spinner);overlay.appendChild(label);
+  document.body.appendChild(overlay);
   const filesToExport=[];
   for(let ci=0;ci<doneCards.length;ci++){
+    label.textContent='正在處理 '+(ci+1)+' / '+doneCards.length+' 張...';
     const card=doneCards[ci];
     const layout=ALL_LAYOUTS[card.layoutIdx];
     const{W,H}=CS[st.ratio];
@@ -1377,6 +1390,7 @@ document.getElementById('btnExport').addEventListener('click',async()=>{
     const blob=await new Promise(res=>ec.toBlob(res,'image/jpeg',0.95));
     if(blob) filesToExport.push(new File([blob],'grido_'+(ci+1)+'.jpg',{type:'image/jpeg'}));
   }
+  document.body.removeChild(overlay);
   try{
     if(navigator.canShare&&navigator.canShare({files:filesToExport})){
       await navigator.share({files:filesToExport,title:'Grido'});
