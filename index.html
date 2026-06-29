@@ -52,7 +52,7 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .pool-cell{position:relative;background:#2C2C2E;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .pool-cell img{position:static;max-width:100%;max-height:100%;width:auto;height:auto;display:block;}
 .pool-cell.used .pool-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.55);z-index:1;}
-.pool-cell.used::after{content:"✓";position:absolute;right:6px;bottom:6px;width:24px;height:24px;border-radius:50%;background:#fff;color:#000;font-size:15px;line-height:24px;text-align:center;font-weight:700;z-index:2;}
+.pool-cell-badge{position:absolute;right:5px;bottom:5px;min-width:20px;height:20px;border-radius:10px;background:#007AFF;color:#fff;font-size:11px;font-weight:700;line-height:20px;text-align:center;padding:0 4px;z-index:2;pointer-events:none;}
 #albumPanel{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
 .iBtn{background:none;border:none;cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:var(--w)}
 .iBtn:active{background:var(--s2)}
@@ -430,7 +430,24 @@ function cardToggleDone(){
 }
 
 // pool used = any card uses that photo
-function poolSyncUsedFast(){ poolSyncUsed(); }
+function poolSyncUsedFast(){
+  if(!pool.length)return;
+  const grid=document.getElementById('poolGrid');
+  if(!grid)return;
+  const cells=grid.querySelectorAll('.pool-cell');
+  let changed=false;
+  pool.forEach((item,i)=>{
+    const usedNow=cards.some(card=>card.photos.includes(item.img));
+    if(usedNow!==item.used) changed=true;
+    item.used=usedNow;
+  });
+  // if any changed, full re-render to update badge numbers
+  if(changed) poolRender(); else {
+    pool.forEach((item,i)=>{
+      if(cells[i]) cells[i].classList.toggle('used',item.used);
+    });
+  }
+}
 
 function poolSyncUsed(){
   if(!pool.length)return;
@@ -698,6 +715,11 @@ function poolRender(){
   // canvas slots used
   const canvasUsed=st.photos.filter(p=>p!==null).length;
   pool.forEach((item,i)=>{
+    // find which card uses this photo
+    let cardNum=null;
+    cards.forEach((card,ci)=>{
+      if(card.photos.includes(item.img)) cardNum=ci+1;
+    });
     const cell=document.createElement('div');
     cell.className='pool-cell'+(item.used?' used':'');
     const img=document.createElement('img');
@@ -706,6 +728,12 @@ function poolRender(){
     const overlay=document.createElement('div');
     overlay.className='pool-overlay';
     cell.appendChild(overlay);
+    if(item.used&&cardNum!==null){
+      const badge=document.createElement('div');
+      badge.className='pool-cell-badge';
+      badge.textContent=cardNum;
+      cell.appendChild(badge);
+    }
     // no delete button — pool is a temp library
     cell.addEventListener('click',()=>{
       if(item.used){
