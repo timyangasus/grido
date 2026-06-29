@@ -795,10 +795,9 @@ function poolRender(){
         st.photos[st.selCell]=item.img;
         st.transforms[st.selCell]={sc:1,ox:0,oy:0};
         item.used=true;
-        cell.classList.add('used');
         st.selCell=null;
         showCanvas();
-        requestAnimationFrame(()=>{render();renderCellOverlays();updateAlbumUI();renderCardIndicator();});
+        requestAnimationFrame(()=>{render();renderCellOverlays();updateAlbumUI();renderCardIndicator();poolRender();});
         return;
       }
       // no selection: fill next empty slot
@@ -817,9 +816,8 @@ function poolRender(){
       st.photos[slot]=item.img;
       st.transforms[slot]={sc:1,ox:0,oy:0};
       item.used=true;
-      cell.classList.add('used');
       showCanvas();
-      requestAnimationFrame(()=>{render();renderCellOverlays();updateAlbumUI();renderCardIndicator();});
+      requestAnimationFrame(()=>{render();renderCellOverlays();updateAlbumUI();renderCardIndicator();poolRender();});
     });
     grid.appendChild(cell);
   });
