@@ -1445,13 +1445,14 @@ document.getElementById('btnExport').addEventListener('click',async()=>{
   try{
     if(navigator.canShare&&navigator.canShare({files:filesToExport})){
       await navigator.share({files:filesToExport,title:'Grido'});
+      showToast(filesToExport.length+'張拼圖已匯出至相簿');
     } else {
       filesToExport.forEach(f=>{
         const url=URL.createObjectURL(f);
         const a=document.createElement('a');a.href=url;a.download=f.name;a.click();
         setTimeout(()=>URL.revokeObjectURL(url),3000);
       });
-      showToast('已下載');
+      showToast(filesToExport.length+'張拼圖已下載');
     }
   }catch(e){if(e.name!=='AbortError')showToast('輸出失敗');}
 });
