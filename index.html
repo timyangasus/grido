@@ -430,6 +430,29 @@ function cardToggleDone(){
 }
 
 // pool used = any card uses that photo
+function updatePoolCellBadge(item){
+  const idx=pool.indexOf(item);
+  if(idx<0)return;
+  const grid=document.getElementById('poolGrid');
+  if(!grid)return;
+  const cell=grid.querySelectorAll('.pool-cell')[idx];
+  if(!cell)return;
+  cell.classList.toggle('used',item.used);
+  // remove existing badge
+  const existing=cell.querySelector('.pool-cell-badge');
+  if(existing) cell.removeChild(existing);
+  if(item.used){
+    let cardNum=null;
+    cards.forEach((card,ci)=>{if(card.photos.includes(item.img)) cardNum=ci+1;});
+    if(cardNum!==null){
+      const badge=document.createElement('div');
+      badge.className='pool-cell-badge';
+      badge.textContent=cardNum;
+      cell.appendChild(badge);
+    }
+  }
+}
+
 function poolSyncUsedFast(){
   if(!pool.length)return;
   const grid=document.getElementById('poolGrid');
@@ -795,9 +818,10 @@ function poolRender(){
         st.photos[st.selCell]=item.img;
         st.transforms[st.selCell]={sc:1,ox:0,oy:0};
         item.used=true;
+        updatePoolCellBadge(item);
         st.selCell=null;
         showCanvas();
-        requestAnimationFrame(()=>{render();renderCellOverlays();updateAlbumUI();renderCardIndicator();poolRender();});
+        requestAnimationFrame(()=>{render();renderCellOverlays();updateAlbumUI();renderCardIndicator();});
         return;
       }
       // no selection: fill next empty slot
@@ -816,8 +840,9 @@ function poolRender(){
       st.photos[slot]=item.img;
       st.transforms[slot]={sc:1,ox:0,oy:0};
       item.used=true;
+      updatePoolCellBadge(item);
       showCanvas();
-      requestAnimationFrame(()=>{render();renderCellOverlays();updateAlbumUI();renderCardIndicator();poolRender();});
+      requestAnimationFrame(()=>{render();renderCellOverlays();updateAlbumUI();renderCardIndicator();});
     });
     grid.appendChild(cell);
   });
