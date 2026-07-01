@@ -881,11 +881,7 @@ function poolReturn(img){
   const item=pool.find(p=>p.img===img);
   if(!item)return;
   item.used=false;
-  // fast update: just toggle class on existing cell
-  const idx=pool.indexOf(item);
-  const grid=document.getElementById('poolGrid');
-  const cell=grid?.querySelectorAll('.pool-cell')[idx];
-  if(cell) cell.classList.remove('used');
+  updatePoolCellBadge(item); // removes badge and used class
 }
 
 // poolSyncUsed defined above in card management
