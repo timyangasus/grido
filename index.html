@@ -1223,9 +1223,23 @@ document.getElementById('btnPoolClear').addEventListener('click',()=>{
           st.transforms=nt;
           applyPhotos(np);
           if(delImg) poolReturn(delImg);
-          if(!st.photos.length){hideCanvas();document.getElementById('lgrid').innerHTML='';}
-          else{render();renderThumbGrid();}
-          updateAlbumUI();renderCardIndicator();gesture=null;return;
+          // shrink current card layout
+          const rem=st.photos.filter(p=>p!==null);
+          if(rem.length===0){
+            cards[cardIdx].photos=[];cards[cardIdx].transforms=[];cards[cardIdx].layoutIdx=null;
+            cards[cardIdx].done=false;
+            switchCard(cardIdx); // triggers cleanup
+          } else {
+            const li=ALL_LAYOUTS.findIndex(l=>l.n===rem.length);
+            if(li>=0){
+              cards[cardIdx].photos=[...rem,...new Array(ALL_LAYOUTS[li].n-rem.length).fill(null)];
+              cards[cardIdx].transforms=cards[cardIdx].photos.map(()=>({sc:1,ox:0,oy:0}));
+              cards[cardIdx].layoutIdx=li;
+              st.layoutIdx=li;
+            }
+            if(!st.photos.length) hideCanvas(); else{render();renderThumbGrid();}
+          }
+          updateAlbumUI();renderCardIndicator();poolSyncAllBadges();gesture=null;return;
         }
       }
       const cell=hitCell(p.x,p.y);
@@ -1375,9 +1389,21 @@ document.getElementById('btnPoolClear').addEventListener('click',()=>{
         st.transforms=nt;
         applyPhotos(np);
         if(delImg2) poolReturn(delImg2);
-        if(!st.photos.length){hideCanvas();document.getElementById('lgrid').innerHTML='';}
-        else{render();renderThumbGrid();}
-        updateAlbumUI();renderCardIndicator();return;
+        const rem2=st.photos.filter(p=>p!==null);
+        if(rem2.length===0){
+          cards[cardIdx].photos=[];cards[cardIdx].transforms=[];cards[cardIdx].layoutIdx=null;
+          cards[cardIdx].done=false;
+          switchCard(cardIdx);
+        } else {
+          const li2=ALL_LAYOUTS.findIndex(l=>l.n===rem2.length);
+          if(li2>=0){
+            cards[cardIdx].photos=[...rem2,...new Array(ALL_LAYOUTS[li2].n-rem2.length).fill(null)];
+            cards[cardIdx].transforms=cards[cardIdx].photos.map(()=>({sc:1,ox:0,oy:0}));
+            cards[cardIdx].layoutIdx=li2;st.layoutIdx=li2;
+          }
+          if(!st.photos.length) hideCanvas(); else{render();renderThumbGrid();}
+        }
+        updateAlbumUI();renderCardIndicator();poolSyncAllBadges();return;
       }
     }
     const cell=hitCell(p.x,p.y);
