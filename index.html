@@ -762,35 +762,34 @@ function poolRender(){
       if(item.used){
         // already used: uncheck and remove from all cards
         item.used=false;
-        updatePoolCellBadge(item); // removes badge and used class
-        cards.forEach(card=>{
-          const ci=card.photos.indexOf(item.img);
-          if(ci>=0){card.photos[ci]=null;card.transforms[ci]={sc:1,ox:0,oy:0};}
+        updatePoolCellBadge(item);
+        // shrink ALL affected cards
+        cards.forEach((card,ci)=>{
+          const idx=card.photos.indexOf(item.img);
+          if(idx<0)return;
+          card.photos[idx]=null;card.transforms[idx]={sc:1,ox:0,oy:0};
+          // shrink this card's layout
+          const rem=card.photos.filter(p=>p!==null);
+          if(rem.length===0){
+            card.photos=[];card.transforms=[];card.layoutIdx=null;
+          } else {
+            const li=ALL_LAYOUTS.findIndex(l=>l.n===rem.length);
+            if(li>=0){
+              const oldT=card.transforms.slice();
+              const oldP=card.photos.slice();
+              card.photos=[...rem,...new Array(ALL_LAYOUTS[li].n-rem.length).fill(null)];
+              card.transforms=card.photos.map((p)=>{
+                if(!p)return{sc:1,ox:0,oy:0};
+                const oi=oldP.indexOf(p);
+                return oi>=0?(oldT[oi]||{sc:1,ox:0,oy:0}):{sc:1,ox:0,oy:0};
+              });
+              card.layoutIdx=li;
+            }
+          }
+          card.done=false;
         });
         st.selCell=null;
-        // shrink layout to match remaining photo count
-        const remaining=st.photos.filter(p=>p!==null);
-        if(remaining.length===0){
-          hideCanvas();
-          st.photos=[];st.transforms=[];st.layoutIdx=null;
-        } else {
-          const li=ALL_LAYOUTS.findIndex(l=>l.n===remaining.length);
-          if(li>=0){
-            st.photos=[...remaining,...new Array(ALL_LAYOUTS[li].n-remaining.length).fill(null)];
-            st.transforms=st.photos.map((_,i)=>remaining[i]?{sc:1,ox:0,oy:0}:{sc:1,ox:0,oy:0});
-            // preserve transforms
-            const oldPhotos=cards[cardIdx].photos;
-            st.transforms=st.photos.map((p,i)=>{
-              if(!p)return{sc:1,ox:0,oy:0};
-              const oi=oldPhotos.indexOf(p);
-              return oi>=0?(cards[cardIdx].transforms[oi]||{sc:1,ox:0,oy:0}):{sc:1,ox:0,oy:0};
-            });
-            cards[cardIdx].photos=st.photos;
-            cards[cardIdx].transforms=st.transforms;
-            st.layoutIdx=li;
-          }
-        }
-        cards[cardIdx].done=false;
+        if(cards[cardIdx].photos.some(p=>p!==null)) showCanvas(); else hideCanvas();
         requestAnimationFrame(()=>{render();renderCellOverlays();updateAlbumUI();renderCardIndicator();});
         return;
       }
