@@ -430,6 +430,35 @@ function cardToggleDone(){
 }
 
 // pool used = any card uses that photo
+function poolSyncAllBadges(){
+  // rebuild badge numbers for all pool cells based on current cards state
+  const grid=document.getElementById('poolGrid');
+  if(!grid)return;
+  const cells=grid.querySelectorAll('.pool-cell');
+  pool.forEach((item,i)=>{
+    if(!cells[i])return;
+    item.used=cards.some(card=>card.photos.includes(item.img));
+    cells[i].classList.toggle('used',item.used);
+    const existing=cells[i].querySelector('.pool-cell-badge');
+    if(existing) cells[i].removeChild(existing);
+    if(item.used){
+      let cardNum=null;
+      cards.forEach((card,ci)=>{
+        if(card.photos.some(p=>p!==null)&&card.photos.includes(item.img)){
+          // count only non-empty cards for display number
+          cardNum=cards.filter((c,idx)=>idx<=ci&&c.photos.some(p=>p!==null)).length;
+        }
+      });
+      if(cardNum!==null){
+        const badge=document.createElement('div');
+        badge.className='pool-cell-badge';
+        badge.textContent=cardNum;
+        cells[i].appendChild(badge);
+      }
+    }
+  });
+}
+
 function updatePoolCellBadge(item){
   const idx=pool.indexOf(item);
   if(idx<0)return;
@@ -790,7 +819,7 @@ function poolRender(){
         });
         st.selCell=null;
         if(cards[cardIdx].photos.some(p=>p!==null)) showCanvas(); else hideCanvas();
-        requestAnimationFrame(()=>{render();renderCellOverlays();updateAlbumUI();renderCardIndicator();});
+        requestAnimationFrame(()=>{render();renderCellOverlays();updateAlbumUI();renderCardIndicator();poolSyncAllBadges();});
         return;
       }
       // ensure layout exists: start with 1 cell
