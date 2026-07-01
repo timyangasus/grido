@@ -762,7 +762,7 @@ function poolRender(){
       if(item.used){
         // already used: uncheck and remove from all cards
         item.used=false;
-        cell.classList.remove('used');
+        updatePoolCellBadge(item); // removes badge and used class
         cards.forEach(card=>{
           const ci=card.photos.indexOf(item.img);
           if(ci>=0){card.photos[ci]=null;card.transforms[ci]={sc:1,ox:0,oy:0};}
@@ -909,11 +909,15 @@ function setupAddInput(id){
       let loaded=0;
       let skipped=0;
       const total=files.length;
-      files.forEach((file)=>{
+      // sort files by lastModified (iOS sets this to photo capture date) newest first
+    const sortedFiles=[...files].sort((a,b)=>b.lastModified-a.lastModified);
+    sortedFiles.forEach((file)=>{
         const key=file.name+'|'+file.size;
         if(pool.some(p=>p.key===key)){skipped++;loaded++;if(loaded===total)showToast('已匯入 '+(total-skipped)+' 張');return;}
         loadImg(file).then(img=>{
-          pool.push({img,used:false,key});
+          pool.push({img,used:false,key,date:file.lastModified});
+          // keep pool sorted by date newest first
+          pool.sort((a,b)=>(b.date||0)-(a.date||0));
           poolRender();
           renderCardIndicator();
           loaded++;
