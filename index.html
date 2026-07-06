@@ -663,6 +663,7 @@ function renderThumbGrid(){
       st.layoutIdx=idx;
       st.selCell=null;
       showCanvas();render();renderThumbGrid();updateAlbumUI();renderCardIndicator();
+      poolSyncAllBadges();
     });
     grid.appendChild(wrap);
   });
@@ -1069,6 +1070,7 @@ function renderThumbGridDrop(){
       st.transforms=newPhotos.map((_,i)=>oldTransforms[i]||{sc:1,ox:0,oy:0});
       st.layoutIdx=idx;st.selCell=null;
       showCanvas();render();renderThumbGrid();renderThumbGridDrop();updateAlbumUI();
+      poolSyncAllBadges();
       closeDropdowns();
     });
     grid.appendChild(wrap);
