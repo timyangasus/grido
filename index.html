@@ -77,7 +77,8 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
 .toast.show{opacity:1}
 #panelBorder{display:none;flex-direction:column;width:100%;overflow:hidden;min-height:0;position:absolute;top:0;left:0;right:0;bottom:0;background:var(--bg)}
 #panelBorder.on{display:flex;z-index:5}
-.border-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--t3);cursor:pointer}
+.border-empty-outer{flex:1;display:flex;align-items:center;justify-content:center;min-height:0}
+.border-empty{position:relative;display:flex;flex-direction:column;align-items:center;gap:14px;color:var(--t3);cursor:pointer}
 .border-empty svg{width:72px;height:72px;opacity:.6}
 .border-empty p{font-size:12px;font-weight:500;opacity:.6}
 .border-grid{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-wrap:wrap;align-content:flex-start;gap:6px;padding:10px;background:var(--bg);min-height:0}
@@ -168,11 +169,13 @@ html,body{height:100%;margin:0;padding:0;overflow:hidden;position:fixed;width:10
       </div>
     </div>
     <div id="panelBorder">
-      <label class="border-empty" id="borderEmpty" style="cursor:pointer">
-        <input type="file" id="fb" accept="image/*" multiple class="real-file-input">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-480ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h320v80H200v560h560v-320h80v320q0 33-23.5 56.5T760-120H200Zm40-160h480L570-480 450-320l-90-120-120 160Zm440-320v-80h-80v-80h80v-80h80v80h80v80h-80v80h-80Z"/></svg>
-        <p>點此加入照片</p>
-      </label>
+      <div class="border-empty-outer">
+        <label class="border-empty" id="borderEmpty" style="cursor:pointer">
+          <input type="file" id="fb" accept="image/*" multiple class="real-file-input">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-480ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h320v80H200v560h560v-320h80v320q0 33-23.5 56.5T760-120H200Zm40-160h480L570-480 450-320l-90-120-120 160Zm440-320v-80h-80v-80h80v-80h80v80h80v80h-80v80h-80Z"/></svg>
+          <p>點此加入照片</p>
+        </label>
+      </div>
       <div class="border-grid" id="borderGrid" style="display:none"></div>
       <div class="border-bar" id="borderBar" style="display:none">
         <label class="iBtn" style="cursor:pointer">
@@ -1524,13 +1527,13 @@ const bst={photos:[],selected:null}; // border state
 
 function bUpdateUI(){
   const n=bst.photos.length;
-  const empty=document.getElementById('borderEmpty');
+  const emptyOuter=document.querySelector('.border-empty-outer');
   const grid=document.getElementById('borderGrid');
   const bar=document.getElementById('borderBar');
   if(n===0){
-    empty.style.display='';grid.style.display='none';bar.style.display='none';
+    emptyOuter.style.display='';grid.style.display='none';bar.style.display='none';
   } else {
-    empty.style.display='none';grid.style.display='';bar.style.display='';
+    emptyOuter.style.display='none';grid.style.display='';bar.style.display='';
   }
 }
 
