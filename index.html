@@ -1580,13 +1580,15 @@ function bRenderGrid(){
       const self=this;
       setTimeout(()=>{try{self.value='';}catch(e){}_lock=false;},100);
       if(!files.length)return;
-      // stream: add each photo as it loads
-      files.forEach(file=>{
+      // stream: add each photo as it loads, but keep selection order
+      // (loads finish out of order, so write into a fixed slot per file)
+      const startIdx=bst.photos.length;
+      files.forEach((file,idx)=>{
         const r=new FileReader();
         r.onload=ev=>{
           const img=new Image();
           img.onload=()=>{
-            bst.photos.push(img);
+            bst.photos[startIdx+idx]=img;
             bRenderGrid();bUpdateUI();
           };
           img.src=ev.target.result;
@@ -1615,8 +1617,9 @@ document.getElementById('btnExportBorder').addEventListener('click', async () =>
   const BORDER = Math.round(SIZE * 0.025);
   const inner = SIZE - BORDER * 2;
   const filesToShare = [];
-  for (let i = 0; i < bst.photos.length; i++) {
-    const img = bst.photos[i];
+  const photosToExport = bst.photos.filter(Boolean);
+  for (let i = 0; i < photosToExport.length; i++) {
+    const img = photosToExport[i];
     const ec = document.createElement('canvas');
     ec.width = SIZE;
     ec.height = SIZE;
