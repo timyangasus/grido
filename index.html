@@ -1536,7 +1536,7 @@ async function exportCards(selectedCards){
 // Fixed columns-per-row by ratio, tuned for legibility on a phone screen:
 // squarer ratios get fewer, bigger thumbnails; narrower ones get more, since
 // each one is already narrow. Extra cards wrap to further rows and scroll.
-const EXPORT_PREVIEW_COLS={'1:1':3,'3:4':3,'2:3':4,'9:16':4};
+const EXPORT_PREVIEW_COLS={'1:1':3,'4:5':3,'3:4':3,'2:3':4,'9:16':4};
 
 function openExportPreviewSheet(doneCards){
   const{W,H}=CS[st.ratio];
