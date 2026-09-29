@@ -1473,9 +1473,29 @@ document.querySelectorAll('.rbtn').forEach(b=>b.addEventListener('click',()=>{
 }));
 
 // ── Export ────────────────────────────────────────────────────────────────────
-document.getElementById('btnExport').addEventListener('click',async()=>{
-  const doneCards=cards.filter(c=>c.done&&c.photos.some(p=>p!==null));
-  if(!doneCards.length){showToast('沒有完成的拼圖');return;}
+function renderCardToCanvas(card,W,H){
+  const layout=ALL_LAYOUTS[card.layoutIdx];
+  const ec=document.createElement('canvas');ec.width=W;ec.height=H;
+  const ectx=ec.getContext('2d');
+  layout.f.forEach((f,i)=>{
+    const r=toRect(f,W,H),img=card.photos[i];
+    if(img){
+      const t=card.transforms[i]||{sc:1,ox:0,oy:0};
+      const base=Math.max(r.w/img.width,r.h/img.height);
+      const sc=base*t.sc;
+      const sw=img.width*sc,sh=img.height*sc;
+      const dx=r.x+(r.w-sw)/2+t.ox;
+      const dy=r.y+(r.h-sh)/2+t.oy;
+      ectx.save();ectx.beginPath();ectx.rect(r.x,r.y,r.w,r.h);ectx.clip();
+      ectx.drawImage(img,dx,dy,sw,sh);ectx.restore();
+    }else{ectx.fillStyle='#2C2C2E';ectx.fillRect(r.x,r.y,r.w,r.h);}
+  });
+  ectx.strokeStyle='#ffffff';drawBorders(ectx,layout.f,W,H,Math.max(1,Math.round(W*0.0015)));
+  return ec;
+}
+
+async function exportCards(selectedCards){
+  if(!selectedCards.length){showToast('沒有選取的拼圖');return;}
   // Show processing overlay
   const overlay=document.createElement('div');
   overlay.style.cssText='position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.7);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;';
@@ -1486,31 +1506,14 @@ document.getElementById('btnExport').addEventListener('click',async()=>{
   document.head.appendChild(style);
   const label=document.createElement('div');
   label.style.cssText='color:#fff;font-size:15px;font-weight:500;';
-  label.textContent='正在處理 0 / '+doneCards.length+' 張...';
+  label.textContent='正在處理 0 / '+selectedCards.length+' 張...';
   overlay.appendChild(spinner);overlay.appendChild(label);
   document.body.appendChild(overlay);
   const filesToExport=[];
-  for(let ci=0;ci<doneCards.length;ci++){
-    label.textContent='正在處理 '+(ci+1)+' / '+doneCards.length+' 張...';
-    const card=doneCards[ci];
-    const layout=ALL_LAYOUTS[card.layoutIdx];
+  for(let ci=0;ci<selectedCards.length;ci++){
+    label.textContent='正在處理 '+(ci+1)+' / '+selectedCards.length+' 張...';
     const{W,H}=CS[st.ratio];
-    const ec=document.createElement('canvas');ec.width=W;ec.height=H;
-    const ectx=ec.getContext('2d');
-    layout.f.forEach((f,i)=>{
-      const r=toRect(f,W,H),img=card.photos[i];
-      if(img){
-        const t=card.transforms[i]||{sc:1,ox:0,oy:0};
-        const base=Math.max(r.w/img.width,r.h/img.height);
-        const sc=base*t.sc;
-        const sw=img.width*sc,sh=img.height*sc;
-        const dx=r.x+(r.w-sw)/2+t.ox;
-        const dy=r.y+(r.h-sh)/2+t.oy;
-        ectx.save();ectx.beginPath();ectx.rect(r.x,r.y,r.w,r.h);ectx.clip();
-        ectx.drawImage(img,dx,dy,sw,sh);ectx.restore();
-      }else{ectx.fillStyle='#2C2C2E';ectx.fillRect(r.x,r.y,r.w,r.h);}
-    });
-    ectx.strokeStyle='#ffffff';drawBorders(ectx,layout.f,W,H,Math.round(W*0.0015));
+    const ec=renderCardToCanvas(selectedCards[ci],W,H);
     const blob=await new Promise(res=>ec.toBlob(res,'image/jpeg',0.95));
     if(blob) filesToExport.push(new File([blob],'grido_'+(ci+1)+'.jpg',{type:'image/jpeg'}));
   }
@@ -1528,6 +1531,98 @@ document.getElementById('btnExport').addEventListener('click',async()=>{
       showToast(filesToExport.length+'張拼圖已下載');
     }
   }catch(e){if(e.name!=='AbortError')showToast('輸出失敗');}
+}
+
+// Fixed columns-per-row by ratio, tuned for legibility on a phone screen:
+// squarer ratios get fewer, bigger thumbnails; narrower ones get more, since
+// each one is already narrow. Extra cards wrap to further rows and scroll.
+const EXPORT_PREVIEW_COLS={'1:1':3,'3:4':3,'2:3':4,'9:16':4};
+
+function openExportPreviewSheet(doneCards){
+  const{W,H}=CS[st.ratio];
+  const dpr=window.devicePixelRatio||1;
+  const ar=W/H;
+  const cols=EXPORT_PREVIEW_COLS[st.ratio]||3;
+  const selected=doneCards.map(()=>true);
+  const GAP=8,GRID_PAD_H=16,GRID_PAD_V_TOP=8,GRID_PAD_V_BOT=8;
+
+  const sheet=document.createElement('div');
+  sheet.style.cssText='position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;justify-content:flex-end;background:rgba(0,0,0,0.5);';
+  const box=document.createElement('div');
+  box.style.cssText='background:#1C1C1E;border-radius:14px 14px 0 0;max-height:80vh;display:flex;flex-direction:column;';
+
+  const header=document.createElement('div');
+  header.style.cssText='padding:14px 16px 8px;color:#fff;font-size:16px;font-weight:600;text-align:center;';
+  header.textContent='選擇要匯出的拼圖';
+  box.appendChild(header);
+
+  const grid=document.createElement('div');
+  grid.style.cssText='display:flex;flex-wrap:wrap;gap:'+GAP+'px;justify-content:flex-start;align-content:flex-start;padding:'+GRID_PAD_V_TOP+'px '+GRID_PAD_H+'px '+GRID_PAD_V_BOT+'px;overflow-y:auto;flex:1;min-height:0;';
+  box.appendChild(grid);
+
+  const footer=document.createElement('div');
+  footer.style.cssText='display:flex;gap:10px;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0));border-top:.5px solid #3A3A3C;';
+  const cancelBtn=document.createElement('button');
+  cancelBtn.textContent='取消';
+  cancelBtn.style.cssText='flex:1;padding:14px;background:#2C2C2E;color:#fff;border:none;border-radius:10px;font-size:16px;cursor:pointer;';
+  cancelBtn.addEventListener('click',()=>document.body.removeChild(sheet));
+  const confirmBtn=document.createElement('button');
+  confirmBtn.style.cssText='flex:1;padding:14px;background:#007AFF;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;';
+  function updateFooter(){
+    const n=selected.filter(Boolean).length;
+    confirmBtn.textContent='輸出 ('+n+')';
+    confirmBtn.style.opacity=n?'1':'0.4';
+    confirmBtn.disabled=!n;
+  }
+  footer.appendChild(cancelBtn);footer.appendChild(confirmBtn);
+  box.appendChild(footer);
+  sheet.appendChild(box);
+  document.body.appendChild(sheet);
+
+  // width is expressed as calc() (not a rounded px value) so the browser divides
+  // the row's actual width exactly across `cols` items — a JS-rounded px width
+  // can sum to 1px more than the container and bump the last item to a new row.
+  const cellWidthCss='calc((100% - '+(GAP*(cols-1))+'px)/'+cols+')';
+  const estW=Math.max(36,Math.round((window.innerWidth-GRID_PAD_H*2-GAP*(cols-1))/cols));
+  const estH=Math.round(estW/ar);
+  const badgeSize=Math.max(16,Math.min(22,Math.round(estW*0.22)));
+
+  doneCards.forEach((card,idx)=>{
+    const cell=document.createElement('div');
+    cell.style.cssText='position:relative;cursor:pointer;width:'+cellWidthCss+';aspect-ratio:'+ar+';';
+    const canvas=renderCardToCanvas(card,Math.round(estW*dpr),Math.round(estH*dpr));
+    canvas.style.cssText='display:block;width:100%;height:100%;border-radius:6px;';
+    cell.appendChild(canvas);
+    const badge=document.createElement('div');
+    badge.style.cssText='position:absolute;top:4px;right:4px;width:'+badgeSize+'px;height:'+badgeSize+'px;border-radius:50%;background:#007AFF;color:#fff;display:flex;align-items:center;justify-content:center;font-size:'+Math.round(badgeSize*0.6)+'px;font-weight:700;border:'+Math.max(1,Math.round(badgeSize*0.09))+'px solid #fff;';
+    badge.textContent='✓';
+    cell.appendChild(badge);
+    function updateVisual(){
+      cell.style.opacity=selected[idx]?'1':'0.35';
+      badge.style.display=selected[idx]?'flex':'none';
+    }
+    updateVisual();
+    cell.addEventListener('click',()=>{
+      selected[idx]=!selected[idx];
+      updateVisual();
+      updateFooter();
+    });
+    grid.appendChild(cell);
+  });
+
+  updateFooter();
+  confirmBtn.addEventListener('click',()=>{
+    const chosen=doneCards.filter((_,i)=>selected[i]);
+    document.body.removeChild(sheet);
+    exportCards(chosen);
+  });
+  sheet.addEventListener('click',e=>{if(e.target===sheet)document.body.removeChild(sheet);});
+}
+
+document.getElementById('btnExport').addEventListener('click',()=>{
+  const doneCards=cards.filter(c=>c.done&&c.photos.some(p=>p!==null));
+  if(!doneCards.length){showToast('沒有完成的拼圖');return;}
+  openExportPreviewSheet(doneCards);
 });
 
 window.addEventListener('resize',()=>{if(st.layoutIdx!==null)render();fixPoolCells();});
