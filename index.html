@@ -427,6 +427,7 @@ function showCardPickerSheet(doneCards){
     sheet.appendChild(title);
     sheet.appendChild(gridWrap);
     sheet.appendChild(actions);
+    backdrop.addEventListener('click',e=>{if(e.target===backdrop)close(null);});
     backdrop.appendChild(sheet);
     document.body.appendChild(backdrop);
   });
