@@ -308,10 +308,10 @@ function showToast(msg){
 }
 function loadImg(file){
   return new Promise((res,rej)=>{
-    const r=new FileReader();
-    r.onerror=rej;
-    r.onload=ev=>{const i=new Image();i.onerror=rej;i.onload=()=>res(i);i.src=ev.target.result;};
-    r.readAsDataURL(file);
+    const i=new Image();
+    i.onerror=rej;
+    i.onload=()=>res(i);
+    i.src=URL.createObjectURL(file);
   });
 }
 
@@ -904,6 +904,7 @@ function poolRender(){
     const cell=document.createElement('div');
     cell.className='pool-cell'+(item.used?' used':'');
     const img=document.createElement('img');
+    img.decoding='async';
     img.src=item.img.src;
     cell.appendChild(img);
     const overlay=document.createElement('div');
@@ -1063,20 +1064,30 @@ function setupAddInput(id){
       let skipped=0;
       const total=files.length;
       // sort files by lastModified (iOS sets this to photo capture date) newest first
-    const sortedFiles=[...files].sort((a,b)=>b.lastModified-a.lastModified);
-    sortedFiles.forEach((file)=>{
-        const key=file.name+'|'+file.size;
-        if(pool.some(p=>p.key===key)){skipped++;loaded++;if(loaded===total)showToast('已匯入 '+(total-skipped)+' 張');return;}
-        loadImg(file).then(img=>{
-          pool.push({img,used:false,key,date:file.lastModified});
-          // keep pool sorted by date newest first
-          pool.sort((a,b)=>(b.date||0)-(a.date||0));
-          poolRender();
-          renderCardIndicator();
-          loaded++;
-          if(loaded===total) showToast('已匯入 '+(total-skipped)+' 張');
-        }).catch(()=>{loaded++;if(loaded===total)showToast('已匯入 '+(total-skipped)+' 張');});
-      });
+      const sortedFiles=[...files].sort((a,b)=>b.lastModified-a.lastModified);
+      // decode a few at a time and re-render the pool at most once per frame
+      let next=0,active=0,renderQueued=false;
+      const schedulePoolRender=()=>{
+        if(renderQueued)return;
+        renderQueued=true;
+        requestAnimationFrame(()=>{renderQueued=false;poolRender();renderCardIndicator();});
+      };
+      const doneOne=()=>{loaded++;if(loaded===total)showToast('已匯入 '+(total-skipped)+' 張');};
+      const pump=()=>{
+        while(active<4&&next<sortedFiles.length){
+          const file=sortedFiles[next++];
+          const key=file.name+'|'+file.size;
+          if(pool.some(p=>p.key===key)){skipped++;doneOne();continue;}
+          active++;
+          loadImg(file).then(img=>{
+            pool.push({img,used:false,key,date:file.lastModified});
+            // keep pool sorted by date newest first
+            pool.sort((a,b)=>(b.date||0)-(a.date||0));
+            schedulePoolRender();
+          }).catch(()=>{}).finally(()=>{active--;doneOne();pump();});
+        }
+      };
+      pump();
     } else {
       // fp: fill canvas directly, auto-expand layout 1→2→...→9
       const filled=before.length;
