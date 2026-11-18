@@ -1067,12 +1067,13 @@ function setupAddInput(id){
       const sortedFiles=[...files].sort((a,b)=>b.lastModified-a.lastModified);
       // decode a few at a time and re-render the pool at most once per frame
       let next=0,active=0,renderQueued=false;
+      const t0=performance.now();
       const schedulePoolRender=()=>{
         if(renderQueued)return;
         renderQueued=true;
         requestAnimationFrame(()=>{renderQueued=false;poolRender();renderCardIndicator();});
       };
-      const doneOne=()=>{loaded++;if(loaded===total)showToast('已匯入 '+(total-skipped)+' 張');};
+      const doneOne=()=>{loaded++;if(loaded===total)showToast('已匯入 '+(total-skipped)+' 張（讀圖 '+((performance.now()-t0)/1000).toFixed(1)+' 秒）');};
       const pump=()=>{
         while(active<4&&next<sortedFiles.length){
           const file=sortedFiles[next++];
