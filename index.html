@@ -1234,9 +1234,9 @@ document.getElementById('btnPoolClear').addEventListener('click',()=>{
   }
 
   const options=[
-    {label:'刪除全部版型',action:'canvas'},
-    {label:'刪除全部縮圖',action:'pool'},
-    {label:'全部',action:'all'},
+    {label:'刪除全部版型',action:'canvas',danger:true},
+    {label:'刪除全部縮圖',action:'pool',danger:true},
+    {label:'全部',action:'all',danger:true},
     {label:'取消',action:'cancel'},
   ];
   const sheet=document.createElement('div');
@@ -1246,7 +1246,7 @@ document.getElementById('btnPoolClear').addEventListener('click',()=>{
   options.forEach(opt=>{
     const btn=document.createElement('button');
     btn.textContent=opt.label;
-    btn.style.cssText='display:block;width:100%;padding:16px;background:none;border:none;border-top:.5px solid #3A3A3C;font-size:17px;cursor:pointer;color:#fff;';
+    btn.style.cssText='display:block;width:100%;padding:16px;background:none;border:none;border-top:.5px solid #3A3A3C;font-size:17px;cursor:pointer;color:'+(opt.danger?'#D9645C':'#fff')+';';
     btn.addEventListener('click',()=>{
       document.body.removeChild(sheet);
       if(opt.action==='canvas') doReset(true,false);
